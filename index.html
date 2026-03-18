@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TOB OS — v11.0 INNOVATION EDITION</title>
+<title>TOB OS — v11.1 INNOVATION EDITION</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 /* ══════════════════════════════════════════════════════════════
@@ -157,6 +157,7 @@ html[data-theme="light"] #statusbar{background:rgba(195,220,248,.97);}
 
 /* ── PET ── */
 #pet-layer{position:fixed;left:0;right:0;top:var(--sb-h);bottom:var(--tb-h);z-index:20;pointer-events:none;overflow:hidden;}
+#pet-layer.hidden{display:none;}
 .pet-entity{position:absolute;pointer-events:auto;cursor:pointer;}
 .pet-bubble{position:absolute;background:rgba(3,12,28,.92);border:1px solid rgba(0,180,255,.3);border-radius:8px;padding:4px 8px;font-size:9px;color:var(--text);font-family:'Share Tech Mono',monospace;white-space:nowrap;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);pointer-events:none;z-index:25;display:none;box-shadow:0 3px 12px rgba(0,0,0,.6);}
 .pet-entity:hover .pet-bubble{display:block;}
@@ -679,6 +680,16 @@ input.cc2-range{width:100%;accent-color:var(--neon);cursor:pointer;}
 .store-screenshot{width:140px;height:90px;flex-shrink:0;border-radius:8px;background:rgba(0,20,50,.6);border:1px solid var(--panel-border);display:flex;align-items:center;justify-content:center;font-size:28px;}
 .store-back-btn{background:rgba(0,180,255,.08);border:1px solid rgba(0,180,255,.25);border-radius:7px;color:var(--neon);font-family:'Share Tech Mono',monospace;font-size:9px;padding:5px 12px;cursor:pointer;margin-bottom:14px;transition:all .13s;}
 .store-back-btn:hover{background:rgba(0,180,255,.18);}
+.store-upload-panel{display:grid;grid-template-columns:1.2fr .8fr;gap:14px;}
+.store-upload-drop{border:1px dashed rgba(0,180,255,.35);border-radius:14px;padding:18px;background:rgba(0,20,45,.35);display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-height:220px;justify-content:center;}
+.store-upload-drop strong{font-family:'Orbitron',sans-serif;font-size:12px;letter-spacing:2px;color:var(--text);}
+.store-upload-drop p{font-size:11px;color:var(--text-dim);line-height:1.6;max-width:420px;}
+.store-upload-meta{background:rgba(0,10,25,.7);border:1px solid var(--panel-border);border-radius:12px;padding:14px;}
+.store-upload-list{margin-top:8px;display:grid;gap:8px;font-size:10px;color:var(--text-dim);font-family:'Share Tech Mono',monospace;}
+.store-upload-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;border:1px solid rgba(0,180,255,.25);background:rgba(0,180,255,.08);font-size:9px;color:var(--neon);font-family:'Share Tech Mono',monospace;}
+.store-feature-flags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.store-feature-flag{padding:2px 7px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);font-size:8px;color:var(--text-dim);font-family:'Share Tech Mono',monospace;}
+@media (max-width: 720px){.store-upload-panel{grid-template-columns:1fr;}}
 
 /* ── SWIPE CC GESTURE INDICATOR ── */
 #cc-swipe-zone{position:fixed;top:0;left:50%;transform:translateX(-50%);width:200px;height:var(--sb-h);z-index:299;cursor:pointer;}
@@ -852,6 +863,7 @@ input.cc2-range{width:100%;accent-color:var(--neon);cursor:pointer;}
 <!-- HIDDEN INPUTS -->
 <input type="file" id="wp-file-input" accept="image/*" style="display:none" onchange="handleWallpaperUpload(event)">
 <input type="file" id="mod-file-input" accept=".json" style="display:none" onchange="handleModInstall(event)">
+<input type="file" id="nexus-app-upload" accept=".json" style="display:none" onchange="handleNexusUpload(event)">
 <input type="file" id="admin-key-file" accept=".key" style="display:none" onchange="handleAdminKeyFile(event)">
 <audio id="audio-el" style="display:none"></audio>
 <input type="file" id="finder-file-input" multiple style="display:none" onchange="finderHandleUpload(event)">
@@ -873,7 +885,7 @@ const OS={
   wpCustom:LS.get('tob_wp_custom',null),track:LS.get('tob_track','ambient'),
   volume:LS.get('tob_volume',0.5),customApps:LS.get('tob_apps',[]),
   hiddenApps:LS.get('tob_hidden',[]),gridSlots:LS.get('tob_grid',{}),
-  activePetId:LS.get('tob_pet','cat'),petVisible:LS.get('tob_pet_on',true),
+  activePetId:LS.get('tob_pet','cat'),petVisible:LS.get('tob_pet_on',false),
   mods:LS.get('tob_mods',[]),adminUnlocked:LS.get('tob_admin',false),
 };
 let _deleteMode=false;
@@ -1164,16 +1176,18 @@ const PET_SPEECH={music:['♪ vibing!','♪ let\'s go!'],app:['ooh shiny!','what
 const PET={entity:null,canvas:null,ctx:null,x:200,y:200,vx:1.2,vy:0,state:'walk',stateTimer:0,animFrame:0,animTick:0,bubbleTimer:0,def:null};
 let _petRafId;
 function initPet(){
-  const layer=document.getElementById('pet-layer');layer.innerHTML='';if(!OS.petVisible)return;
+  const layer=document.getElementById('pet-layer');if(!layer)return;
+  if(!OS.petVisible){stopPet();return;}
+  stopPet();syncPetLayerVisibility();
   const def=PET_DEFS[OS.activePetId]||PET_DEFS.cat;PET.def=def;
   const el=document.createElement('div');el.className='pet-entity';el.id='pet-entity';el.style.cssText='width:44px;height:44px;position:absolute;';
   const canvas=document.createElement('canvas');canvas.width=44;canvas.height=44;canvas.style.cssText='width:44px;height:44px;image-rendering:pixelated;';
   const bubble=document.createElement('div');bubble.className='pet-bubble';bubble.id='pet-bubble';
   el.appendChild(canvas);el.appendChild(bubble);layer.appendChild(el);
   PET.entity=el;PET.canvas=canvas;PET.ctx=canvas.getContext('2d');
-  PET.x=Math.random()*(layer.offsetWidth-80)+40;PET.y=Math.random()*(layer.offsetHeight-80)+40;
+  PET.x=Math.random()*(Math.max(layer.offsetWidth,120)-80)+40;PET.y=Math.random()*(Math.max(layer.offsetHeight,120)-80)+40;
   el.onclick=()=>petReact('tap');
-  requestAnimationFrame(petLoop);
+  _petRafId=requestAnimationFrame(petLoop);
 }
 function petDraw(){
   const{ctx,def,state,animTick}=PET;if(!ctx||!def)return;
@@ -1186,18 +1200,19 @@ function petDraw(){
   else{C(col);px(8,gy-4,28,12);px(12,gy-14,20,12);px(12,gy-18,5,5);px(27,gy-18,5,5);C('#ffaaaa');px(13,gy-17,3,3);px(28,gy-17,3,3);C('#000');px(16,gy-11,3,3);px(25,gy-11,3,3);C('#fff');px(17,gy-10,1,1);px(26,gy-10,1,1);C('#ff6699');px(21,gy-8,3,2);C(col);px(2,gy-6,10,5);px(2,gy-10,6,6);if(state==='walk'){if(af%4<2){px(10,gy+8,5,6);px(28,gy+4,5,6);}else{px(10,gy+4,5,6);px(28,gy+8,5,6);}}else{px(10,gy+4,5,8);px(28,gy+4,5,8);}}
 }
 function petLoop(){
-  _petRafId=requestAnimationFrame(petLoop);if(!PET.entity||!OS.petVisible)return;
+  if(!PET.entity||!OS.petVisible){_petRafId=null;return;}
   PET.animTick++;PET.stateTimer--;PET.animFrame=Math.floor(PET.animTick/8)%8;
   if(PET.stateTimer<=0){const r=Math.random();PET.state=r<.5?'walk':r<.75?'idle':'sleep';PET.stateTimer=60+Math.random()*180;}
-  const layer=document.getElementById('pet-layer');if(!layer)return;
+  const layer=document.getElementById('pet-layer');if(!layer){_petRafId=null;return;}
   const lW=layer.offsetWidth,lH=layer.offsetHeight;
   if(PET.state==='walk'){PET.x+=PET.vx;PET.y+=PET.vy*.3;if(PET.x<10||PET.x>lW-54){PET.vx*=-1;PET.entity.style.transform=PET.vx<0?'scaleX(-1)':'';}if(Math.random()<.015)PET.vy=(Math.random()-.5)*2;}
   PET.x=Math.max(0,Math.min(lW-44,PET.x));PET.y=Math.max(0,Math.min(lH-44,PET.y));
   PET.entity.style.left=PET.x+'px';PET.entity.style.top=PET.y+'px';
   if(PET.bubbleTimer>0){PET.bubbleTimer--;if(PET.bubbleTimer===0){const b=document.getElementById('pet-bubble');if(b)b.style.display='none';}}
   petDraw();
+  _petRafId=requestAnimationFrame(petLoop);
 }
-function petReact(event){const msgs=PET_SPEECH[event]||PET_SPEECH.idle;showPetBubble(msgs[Math.floor(Math.random()*msgs.length)]);PET.state=event==='music'?'walk':'idle';PET.stateTimer=90;}
+function petReact(event){if(!OS.petVisible)return;const msgs=PET_SPEECH[event]||PET_SPEECH.idle;showPetBubble(msgs[Math.floor(Math.random()*msgs.length)]);PET.state=event==='music'?'walk':'idle';PET.stateTimer=90;}
 function showPetBubble(text){const b=document.getElementById('pet-bubble');if(!b)return;b.textContent=text;b.style.display='block';PET.bubbleTimer=120;}
 
 /* ══ 13. MUSIC ══ */
@@ -1769,25 +1784,93 @@ function buildTobTubeApp(body){
 }
 
 /* ══ MOD MANAGER ══ */
+const SYSTEM_APP_BLUEPRINTS={
+  web_browser:{id:'web_browser',label:'Web Browser',icon:'🌐',type:'html',size:'lg',color:'#001a30',urlHint:'https://example.com',html:`<!DOCTYPE html><html><head><style>body{margin:0;background:#020915;color:#c8e8ff;font-family:Rajdhani,sans-serif;height:100vh;display:flex;flex-direction:column}#bar{display:flex;gap:8px;align-items:center;padding:10px;border-bottom:1px solid rgba(0,180,255,.2);background:rgba(0,12,26,.95)}input{flex:1;padding:8px 12px;border-radius:999px;border:1px solid rgba(0,180,255,.25);background:rgba(0,20,40,.8);color:#c8e8ff;outline:none}button{padding:8px 12px;border-radius:999px;border:none;background:linear-gradient(135deg,#003399,#00b4ff);color:#fff;font-family:Orbitron,sans-serif;font-size:10px;cursor:pointer}iframe{flex:1;border:none;width:100%;background:#fff}.hint{font-size:10px;color:rgba(200,232,255,.55);font-family:'Share Tech Mono',monospace}</style></head><body><div id='bar'><strong style='font-family:Orbitron,sans-serif;font-size:11px;letter-spacing:2px;color:#00b4ff'>NEXUS BROWSER</strong><input id='url' value='https://example.com' placeholder='Enter a site or search term'><button onclick='go()'>GO</button></div><div style='padding:6px 12px' class='hint'>Uses a text-friendly proxy fallback when needed for embedded browsing.</div><iframe id='view' src='https://example.com'></iframe><script>function normalize(v){v=v.trim();if(!v)return 'https://example.com';if(/^https?:\/\//i.test(v))return v;if(v.includes('.')&&!v.includes(' '))return 'https://'+v;return 'https://r.jina.ai/http://https://duckduckgo.com/?q='+encodeURIComponent(v);}function go(){const url=normalize(document.getElementById('url').value);document.getElementById('view').src=url;}document.getElementById('url').addEventListener('keydown',e=>{if(e.key==='Enter')go();});<\/script></body></html>`},
+  pokemon_game:{id:'pokemon_game',label:'Pokemon Game',icon:'⚡',type:'html',size:'lg',color:'#180018',html:`<!DOCTYPE html><html><head><style>body{margin:0;background:radial-gradient(circle at top,#25104f,#070a18 65%);color:#fff;font-family:Rajdhani,sans-serif;height:100vh;display:flex;flex-direction:column}header{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.12);display:flex;justify-content:space-between;align-items:center}button,a{padding:8px 14px;border-radius:999px;border:none;background:linear-gradient(135deg,#ff2d6e,#ff9d00);color:#fff;font-family:Orbitron,sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-decoration:none;cursor:pointer}.hero{padding:18px;display:grid;grid-template-columns:1.1fr .9fr;gap:16px;flex:1}.card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:16px}.launcher{display:flex;flex-direction:column;gap:10px}.links{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}iframe{width:100%;height:100%;min-height:320px;border:none;border-radius:14px;background:#fff}.meta{font-size:11px;line-height:1.7;color:rgba(255,255,255,.8)}</style></head><body><header><strong style='font-family:Orbitron,sans-serif;letter-spacing:3px'>POKEMON NEXUS</strong><button onclick='loadGame()'>LAUNCH EMBED</button></header><div class='hero'><div class='card launcher'><div style='font-size:54px'>⚡</div><div style='font-family:Orbitron,sans-serif;font-size:20px'>Pokemon Game Launcher</div><div class='meta'>Launch a browser-friendly Pokemon experience from inside TOB OS, or jump out to a full game portal in a new tab.</div><div class='links'><a href='https://play.pokemonshowdown.com/' target='_blank' rel='noopener noreferrer'>Pokemon Showdown</a><a href='https://pokerogue.net/' target='_blank' rel='noopener noreferrer'>PokeRogue</a></div></div><div class='card'><iframe id='game' srcdoc="<body style='margin:0;display:flex;align-items:center;justify-content:center;height:100vh;background:#0b1020;color:#fff;font-family:Orbitron,sans-serif'>Press LAUNCH EMBED to load Pokemon Showdown.<\/body>"></iframe></div></div><script>function loadGame(){document.getElementById('game').src='https://play.pokemonshowdown.com/';}<\/script></body></html>`}
+};
 const BUILTIN_MODS=[
   {id:'neon_pink',name:'Neon Pink Theme',desc:'Hot pink accent overlay',version:'1.0',icon:'🌸',enabled:false,builtin:true,tab:'system'},
   {id:'matrix_bg',name:'Matrix Rain',desc:'Classic green matrix effect',version:'1.2',icon:'💚',enabled:false,builtin:true,tab:'system'},
   {id:'crt_heavy',name:'Heavy CRT Filter',desc:'Strong scanline effect',version:'1.0',icon:'📺',enabled:false,builtin:true,tab:'system'},
   {id:'glass_ui',name:'Liquid Glass UI',desc:'Apple-style glass blur panels',version:'2.0',icon:'🔮',enabled:false,builtin:true,tab:'system'},
   {id:'win11',name:'Windows 11 Theme',desc:'Fluent UI rounded corners',version:'1.1',icon:'🪟',enabled:false,builtin:true,tab:'system'},
-  {id:'blue_theme',name:'Blue Theme',desc:'Deep ocean blue accent & wallpaper',version:'1.0',icon:'🔵',enabled:false,builtin:true,tab:'system'},
+  {id:'blue_theme',name:'Blue Theme',desc:'Deep ocean blue accent & wallpaper',version:'1.0',icon:'🔵',enabled:false,builtin:true,tab:'themes',cssVars:{'--neon':'#1e90ff','--accent':'#1e90ff','--neon3':'#00bfff'},wallpaper:'wp-energy'},
+  {id:'cyber_rose',name:'Cyber-Rose Theme',desc:'Pink neon accents with rose-gold highlights',version:'1.0',icon:'🌹',enabled:false,builtin:true,tab:'themes',cssVars:{'--neon':'#ff5da8','--neon2':'#ff2d6e','--neon3':'#ff9ad7','--accent':'#ff7ab8','--panel-border':'rgba(255,93,168,.28)'},wallpaper:'wp-gradient'},
+  {id:'browser_pack',name:'Browser Unlock Pack',desc:'Unlocks the integrated Nexus web browser',version:'1.0',icon:'🌐',enabled:false,builtin:true,tab:'app_packs',apps:['web_browser']},
+  {id:'pokemon_pack',name:'Pokemon Game Pack',desc:'Unlocks the Pokemon launcher app',version:'1.0',icon:'⚡',enabled:false,builtin:true,tab:'app_packs',apps:['pokemon_game']},
   {id:'ui_sounds',name:'UI Sound FX',desc:'Adds click sound effects',version:'1.1',icon:'🔊',enabled:false,builtin:true,tab:'system'},
-  {id:'calc_sci',name:'Calculator: Sci Mode',desc:'Scientific calculator mode',version:'1.0',icon:'🧮',enabled:false,builtin:true,tab:'apps'},
-  {id:'tobtube_hd',name:'TobTube: HD Mode',desc:'Higher resolution video thumbnails',version:'1.0',icon:'📺',enabled:false,builtin:true,tab:'apps'},
+  {id:'calc_sci',name:'Calculator: Sci Mode',desc:'Scientific calculator mode',version:'1.0',icon:'🧮',enabled:false,builtin:true,tab:'system'},
+  {id:'tobtube_hd',name:'TobTube: HD Mode',desc:'Higher resolution video thumbnails',version:'1.0',icon:'📺',enabled:false,builtin:true,tab:'system'},
 ];
-function getActiveMods(){return[...BUILTIN_MODS,...OS.mods];}
+function normalizeStoreAppMeta(meta={}){
+  const rawName=(meta.label||meta.name||meta.id||'Custom App').toString().trim();
+  const slug=(meta.id||rawName.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'')||`custom_${Date.now()}`).slice(0,48);
+  return {
+    id:slug,
+    label:rawName,
+    icon:(meta.icon||'📱').toString(),
+    type:meta.type==='html'?'html':(meta.html&&!meta.url?'html':'url'),
+    html:typeof meta.html==='string'?meta.html:'',
+    url:typeof meta.url==='string'?meta.url.trim():'',
+    size:['sm','md','lg'].includes(meta.size)?meta.size:'md',
+    color:meta.color||'#001530',
+    imageData:meta.imageData||null,
+  };
+}
+function getBlueprintApp(id){
+  const blueprint=SYSTEM_APP_BLUEPRINTS[id];
+  return blueprint?normalizeStoreAppMeta(blueprint):null;
+}
+function installCustomAppMeta(meta,opts={}){
+  const app=normalizeStoreAppMeta(meta);
+  if(app.type==='url'&&!app.url)throw new Error('App URL is missing');
+  if(app.type==='html'&&!app.html)throw new Error('App HTML is missing');
+  const existingIdx=OS.customApps.findIndex(a=>a.id===app.id);
+  if(existingIdx>=0)OS.customApps.splice(existingIdx,1,app);
+  else OS.customApps.push(app);
+  LS.set('tob_apps',OS.customApps);
+  buildDesktopIcons();buildStartMenu();
+  if(!opts.silent)toast(`🛍️ Installed ${app.label}`);
+  return app;
+}
+function removeCustomAppMeta(id,opts={}){
+  const before=OS.customApps.length;
+  OS.customApps=OS.customApps.filter(a=>a.id!==id);
+  if(OS.hiddenApps.includes(id)){OS.hiddenApps=OS.hiddenApps.filter(h=>h!==id);LS.set('tob_hidden',OS.hiddenApps);}
+  LS.set('tob_apps',OS.customApps);
+  buildDesktopIcons();buildStartMenu();
+  if(before!==OS.customApps.length&&!opts.silent)toast('🗑 App removed');
+}
+function getModCssVarKeys(mod){return Object.keys(mod.cssVars||mod.themeVars||{});}
+function normalizeModTab(tab){const v=(tab||'system').toString().toLowerCase().replace(/[^a-z]+/g,'_');if(v.includes('theme'))return 'themes';if(v.includes('app'))return 'app_packs';return 'system';}
+function normalizeModDefinition(mod={}){
+  const cssVars=mod.cssVars||mod.theme?.cssVars||mod.inject?.cssVars||{};
+  const injectApps=[...(mod.apps||[]),...(mod.appsToUnlock||[]),...(mod.unlockApps||[]),...((mod.inject&&mod.inject.apps)||[])];
+  return {...mod,tab:normalizeModTab(mod.tab||mod.category||mod.type),type:mod.type||'system',cssVars,apps:injectApps};
+}
+function getActiveMods(){return[...BUILTIN_MODS,...OS.mods.map(normalizeModDefinition)];}
+function syncStoreInstalledCache(){LS.set('tob_store_installed',OS.customApps.map(a=>a.id));}
+function applyThemeVarPatch(mod){
+  const vars=mod.cssVars||{};
+  Object.entries(vars).forEach(([k,v])=>{if(mod.enabled)document.documentElement.style.setProperty(k,v);else document.documentElement.style.removeProperty(k);});
+}
+function applyInjectedApps(mod){
+  (mod.apps||[]).forEach(appRef=>{
+    const meta=typeof appRef==='string'?getBlueprintApp(appRef):normalizeStoreAppMeta(appRef);
+    if(!meta)return;
+    if(mod.enabled)installCustomAppMeta(meta,{silent:true});
+    else removeCustomAppMeta(meta.id,{silent:true});
+  });
+  syncStoreInstalledCache();
+}
 function toggleMod(id){
   const mod=getActiveMods().find(m=>m.id===id);if(!mod)return;
   mod.enabled=!mod.enabled;
-  if(!mod.builtin){const idx=OS.mods.findIndex(m=>m.id===id);if(idx>=0)OS.mods[idx].enabled=mod.enabled;LS.set('tob_mods',OS.mods);}
+  if(!mod.builtin){const idx=OS.mods.findIndex(m=>m.id===id);if(idx>=0){OS.mods[idx]=normalizeModDefinition({...OS.mods[idx],enabled:mod.enabled});LS.set('tob_mods',OS.mods);}}
   LS.set('tob_mod_'+id,mod.enabled);applyMod(mod);refreshModApp();
   toast(`${mod.enabled?'✓ Enabled':'✗ Disabled'}: ${mod.name}`);adminLog(`Mod ${mod.enabled?'enabled':'disabled'}: ${mod.name}`);
 }
+function resetThemeVarFallbacks(){['--neon','--neon2','--neon3','--accent','--panel-border'].forEach(v=>document.documentElement.style.removeProperty(v));}
 function applyMod(mod){
   if(mod.id==='neon_pink')document.documentElement.style.setProperty('--neon',mod.enabled?'#ff2d9e':'');
   if(mod.id==='crt_heavy'){const s=document.getElementById('scanlines');if(s)s.style.opacity=mod.enabled?'4':'1';}
@@ -1795,47 +1878,46 @@ function applyMod(mod){
   if(mod.id==='glass_ui')document.documentElement.setAttribute('data-mod-glass',mod.enabled?'1':'0');
   if(mod.id==='win11')document.documentElement.setAttribute('data-mod-win11',mod.enabled?'1':'0');
   if(mod.id==='ui_sounds'&&mod.enabled)enableSoundFX();
-  if(mod.id==='blue_theme'){
-    if(mod.enabled){
-      document.documentElement.style.setProperty('--neon','#1e90ff');
-      document.documentElement.style.setProperty('--accent','#1e90ff');
-      document.documentElement.style.setProperty('--neon3','#00bfff');
-      applyWallpaper('wp-energy');
-    } else {
-      document.documentElement.style.removeProperty('--neon');
-      document.documentElement.style.removeProperty('--accent');
-      document.documentElement.style.removeProperty('--neon3');
-    }
-  }
+  if((mod.id==='blue_theme'||mod.id==='cyber_rose')&&!mod.enabled)resetThemeVarFallbacks();
+  applyThemeVarPatch(mod);
+  if(mod.wallpaper&&mod.enabled)applyWallpaper(mod.wallpaper);
+  if(mod.apps?.length)applyInjectedApps(mod);
 }
 let _matrixCv=null;
 function startMatrixRain(){if(_matrixCv)return;_matrixCv=document.createElement('canvas');_matrixCv.style.cssText='position:fixed;inset:0;z-index:3;pointer-events:none;opacity:0.08;';document.body.appendChild(_matrixCv);const ctx=_matrixCv.getContext('2d');const resize=()=>{_matrixCv.width=innerWidth;_matrixCv.height=innerHeight;};resize();addEventListener('resize',resize,{passive:true});const drops=Array(500).fill(1);setInterval(()=>{if(!_matrixCv)return;ctx.fillStyle='rgba(0,0,0,.05)';ctx.fillRect(0,0,_matrixCv.width,_matrixCv.height);ctx.fillStyle='#00ff41';ctx.font='13px monospace';drops.forEach((y,i)=>{ctx.fillText(String.fromCharCode(0x30A0+Math.random()*96),i*14,y*14);drops[i]=y*14>_matrixCv.height&&Math.random()>.975?0:y+1;});},45);}
 function stopMatrixRain(){if(_matrixCv){_matrixCv.remove();_matrixCv=null;}}
 function enableSoundFX(){const ctx=getACtx();const click=()=>{try{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=800;g.gain.setValueAtTime(.04,ctx.currentTime);g.gain.linearRampToValueAtTime(0,ctx.currentTime+.06);o.start();o.stop(ctx.currentTime+.06);}catch(e){}};if(!document.body.dataset.sfxOn){document.body.dataset.sfxOn='1';document.body.addEventListener('click',click,{capture:true});}}
-function handleModInstall(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const mod=JSON.parse(r.result);if(!mod.id||!mod.name)throw new Error('Invalid');mod.builtin=false;mod.enabled=false;mod.tab=mod.tab||'system';if(!OS.mods.find(m=>m.id===mod.id)){OS.mods.push(mod);LS.set('tob_mods',OS.mods);}refreshModApp();toast(`📦 Installed: ${mod.name}`);}catch(err){toast('⚠ Invalid mod file');}};r.readAsText(f);e.target.value='';}
-function uninstallMod(id){OS.mods=OS.mods.filter(m=>m.id!==id);LS.set('tob_mods',OS.mods);refreshModApp();toast('🗑 Mod removed');}
+function handleModInstall(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{try{
+    const raw=JSON.parse(r.result);if(!raw.id||!raw.name)throw new Error('Invalid');
+    const mod=normalizeModDefinition({...raw,builtin:false,enabled:false});
+    if(!OS.mods.find(m=>m.id===mod.id)){OS.mods.push(mod);LS.set('tob_mods',OS.mods);}
+    refreshModApp();toast(`📦 Installed: ${mod.name}`);
+  }catch(err){toast('⚠ Invalid mod file');}};
+  r.readAsText(f);e.target.value='';
+}
+function uninstallMod(id){
+  const doomed=OS.mods.find(m=>m.id===id);
+  if(doomed?.enabled)applyMod({...normalizeModDefinition(doomed),enabled:false});
+  OS.mods=OS.mods.filter(m=>m.id!==id);LS.set('tob_mods',OS.mods);refreshModApp();toast('🗑 Mod removed');
+}
 let _modActiveTab='system';
 function refreshModApp(){const r=document.querySelector('.mod-content');if(!r)return;r.innerHTML=buildModTabContent(_modActiveTab);}
 function buildModTabContent(tab){
-  const mods=getActiveMods().filter(m=>m.tab===tab||(tab==='installed'&&!m.builtin));
-  let h='';
-  if(tab==='installed'){
-    const custom=getActiveMods().filter(m=>!m.builtin);
-    if(!custom.length)h=`<div style="font-size:11px;color:var(--text-muted);font-family:'Share Tech Mono',monospace;padding:20px;text-align:center">No custom mods installed</div>`;
-    custom.forEach(m=>{h+=modCardHTML(m);});
-    h+=`<div class="mod-install-area" onclick="document.getElementById('mod-file-input').click()"><div style="font-size:28px">📦</div><div style="font-size:12px;font-weight:600;color:var(--text-dim);margin-top:4px">Install Mod Package (.json)</div></div>`;
-  }else{
-    const filtered=getActiveMods().filter(m=>m.tab===tab);
-    if(!filtered.length)h=`<div style="font-size:11px;color:var(--text-muted);font-family:'Share Tech Mono',monospace;padding:20px;text-align:center">No mods in this category</div>`;
-    filtered.forEach(m=>{h+=modCardHTML(m);});
-  }
+  const mods=getActiveMods().filter(m=>normalizeModTab(m.tab)===tab);
+  let h=`<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px"><div class="store-section-title" style="margin:0">${tab==='system'?'🧠 SYSTEM MODS':tab==='themes'?'🎨 THEME MODS':'🧩 APP PACKS'}</div><button class="generic-btn" style="margin:0;width:auto;padding:8px 12px" onclick="document.getElementById('mod-file-input').click()">📦 Import JSON Mod</button></div>`;
+  if(!mods.length)h+=`<div style="font-size:11px;color:var(--text-muted);font-family:'Share Tech Mono',monospace;padding:20px;text-align:center">No mods in this category</div>`;
+  mods.forEach(m=>{h+=modCardHTML(m);});
+  h+=`<div class="set-section" style="margin-top:12px"><div class="set-section-title">File-Based Injection</div><div style="font-size:11px;color:var(--text-dim);line-height:1.7">JSON mods can now inject <strong>CSS variables</strong> as global themes and unlock apps through <strong>app packs</strong>. Use fields like <code>cssVars</code>, <code>apps</code>, or <code>inject.apps</code>.</div></div>`;
   return h;
 }
-function modCardHTML(m){return`<div class="mod-card"><div class="mod-card-icon">${m.icon||'📦'}</div><div class="mod-card-info"><div class="mod-card-name">${m.name}</div><div class="mod-card-desc">${m.desc||''}</div><div class="mod-card-version">v${m.version||'1.0'}</div></div><div class="mod-card-actions"><div class="mod-toggle ${m.enabled?'on':''}" onclick="toggleMod('${m.id}')"></div>${!m.builtin?`<button class="mod-uninstall" onclick="uninstallMod('${m.id}')">REMOVE</button>`:''}</div></div>`;}
+function modCardHTML(m){const meta=[m.type&&m.type!=='system'?m.type.toUpperCase():null,getModCssVarKeys(m).length?`${getModCssVarKeys(m).length} CSS VARS`:null,m.apps?.length?`${m.apps.length} APP${m.apps.length>1?'S':''}`:null].filter(Boolean).join(' · ');return`<div class="mod-card"><div class="mod-card-icon">${m.icon||'📦'}</div><div class="mod-card-info"><div class="mod-card-name">${m.name}</div><div class="mod-card-desc">${m.desc||''}</div><div class="mod-card-version">v${m.version||'1.0'}${meta?` · ${meta}`:''}</div></div><div class="mod-card-actions"><div class="mod-toggle ${m.enabled?'on':''}" onclick="toggleMod('${m.id}')"></div>${!m.builtin?`<button class="mod-uninstall" onclick="uninstallMod('${m.id}')">REMOVE</button>`:''}</div></div>`;}
 function buildModApp(body){
   body.style.overflow='hidden';body.style.background='var(--bg)';
   const root=document.createElement('div');root.className='mod-app';
-  root.innerHTML=`<div class="mod-tabs"><div class="mod-tab active" data-tab="system">SYSTEM</div><div class="mod-tab" data-tab="apps">APPS</div><div class="mod-tab" data-tab="installed">INSTALLED</div></div><div class="mod-content"></div>`;
+  root.innerHTML=`<div class="mod-tabs"><div class="mod-tab ${_modActiveTab==='system'?'active':''}" data-tab="system">SYSTEM</div><div class="mod-tab ${_modActiveTab==='themes'?'active':''}" data-tab="themes">THEMES</div><div class="mod-tab ${_modActiveTab==='app_packs'?'active':''}" data-tab="app_packs">APP PACKS</div></div><div class="mod-content"></div>`;
   body.appendChild(root);
   root.querySelectorAll('.mod-tab').forEach(t=>{t.addEventListener('click',()=>{root.querySelectorAll('.mod-tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');_modActiveTab=t.dataset.tab;refreshModApp();});});
   refreshModApp();
@@ -1906,7 +1988,14 @@ function buildUpdateLogApp(body){
   const root=document.createElement('div');root.className='updatelog-app';
   root.innerHTML=`<div class="set-title">📋 UPDATE LOG</div>
   <div class="changelog-entry changelog-major">
-    <div class="changelog-version">◈ TOB OS v7.0.0 <span style="color:var(--text-muted);font-size:9px">— CURRENT · NEXUS EDITION</span></div>
+    <div class="changelog-version">◈ TOB OS v11.1.0 <span style="color:var(--text-muted);font-size:9px">— CURRENT · INNOVATION UPDATE</span></div>
+    <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span><strong>Nexus Store</strong> for downloading and uploading custom applications</div>
+    <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span>File-based <strong>Mod Injection</strong> for Themes and App Packs</div>
+    <div class="changelog-item"><span class="changelog-tag tag-change">CHANGE</span>Desktop pets are now optional and disabled by default</div>
+    <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span>Integrated <strong>Web Browser</strong> and <strong>Pokemon Game</strong> launchers</div>
+  </div>
+  <div class="changelog-entry changelog-major">
+    <div class="changelog-version">◈ TOB OS v7.0.0 <span style="color:var(--text-muted);font-size:9px">— NEXUS EDITION</span></div>
     <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span><strong>TobTube</strong> — PetTube fully replaced. Folder-sync video platform, no pets, clean YouTube-style layout with creator names</div>
     <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span><strong>Task Manager</strong> — CPU usage, memory stats, running processes, End Task buttons. Win11-inspired layout</div>
     <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span><strong>macOS Control Center</strong> — floating panel with WiFi, dark mode, volume, brightness, OST toggle. Click ⊞ in status bar</div>
@@ -1917,50 +2006,10 @@ function buildUpdateLogApp(body){
     <div class="changelog-item"><span class="changelog-tag tag-change">REMOVED</span>Web Browser removed to reduce file size and improve performance</div>
     <div class="changelog-item"><span class="changelog-tag tag-change">REMOVED</span>All PetTube pet-related code, animations, and references purged</div>
   </div>
-  <div class="changelog-entry changelog-major">
-    <div class="changelog-version">◈ TOB OS v6.0.0</div>
-    <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span>Built-in <strong>Calculator App</strong> — basic and scientific operations, keyboard support</div>
-    <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span>Built-in <strong>Web Browser</strong> — tabbed browsing, bookmarks, crash detection & auto-close</div>
-    <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span>Browser tabs now clean up memory on close — no background instances</div>
-    <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span><strong>PetTube</strong> rewritten from scratch — fast, no lag, instant load</div>
-    <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span><strong>Admin Panel</strong> — unlock with admin.key file or key code "TOBOS-ADMIN-2025"</div>
-    <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span>Admin Panel shows running processes, system stats, log, and controls</div>
-    <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span><strong>Mod Manager</strong> now has tabs — System, Apps, Installed</div>
-    <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span><strong>Liquid Glass UI mod</strong> — Apple-style blur/transparency</div>
-    <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span><strong>Windows 11 theme mod</strong> — Fluent UI rounded corners</div>
-    <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span>Update Log now has its own dedicated app</div>
-    <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span>Calculator: Sci Mode and Browser: Dark Reader as app mods</div>
-    <div class="changelog-item"><span class="changelog-tag tag-fix">FIX</span>All windows now properly terminate iframes on close — zero background lag</div>
-    <div class="changelog-item"><span class="changelog-tag tag-fix">FIX</span>PetTube no longer freezes OS during load</div>
-    <div class="changelog-item"><span class="changelog-tag tag-fix">FIX</span>Browser tabs clean up memory on close</div>
-    <div class="changelog-item"><span class="changelog-tag tag-change">CHANGE</span>Mod Manager reorganized with category tabs</div>
-  </div>
-  <div class="changelog-entry changelog-major">
-    <div class="changelog-version">◈ TOB OS v5.0.0</div>
-    <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span>Renamed from NEXOS to TOB OS</div>
-    <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span>iOS-style snapping icon grid</div>
-    <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span>App Vault — recover hidden apps</div>
-    <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span>Music player with File System Access API folder watching</div>
-    <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span>Music auto-scans folder every 20 seconds</div>
-    <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span>PetTube integration via iframe</div>
-    <div class="changelog-item"><span class="changelog-tag tag-fix">FIX</span>Icon positions persist after drag-swap</div>
-  </div>
-  <div class="changelog-entry">
-    <div class="changelog-version">◈ NEXOS OS v4.0.0</div>
-    <div class="changelog-item">Windows-style taskbar with live running apps</div>
-    <div class="changelog-item">Battery monitor via Navigator Battery API</div>
-    <div class="changelog-item">Desktop Pets system (5 pixel art pets)</div>
-    <div class="changelog-item">Mod Manager with built-in and custom mods</div>
-    <div class="changelog-item">Synth OST music (3 tracks, no audio files needed)</div>
-    <div class="changelog-item">Start Menu launcher</div>
-  </div>
-  <div class="changelog-entry">
-    <div class="changelog-version">◈ NEXOS OS v3.0.0</div>
-    <div class="changelog-item">Sidebar-based app launcher</div>
-    <div class="changelog-item">Fractured Frames game integration</div>
-    <div class="changelog-item">Blue Lock Striker mini-game</div>
-    <div class="changelog-item">Custom app creator</div>
-    <div class="changelog-item">Wallpaper system with localStorage persistence</div>
+  <div class="changelog-entry"><div class="changelog-version">Highlights</div>
+    <div class="changelog-item">File-based app upload and install flow</div>
+    <div class="changelog-item">Advanced mod categories with theme/app pack injection</div>
+    <div class="changelog-item">Persistent desktop app installs with Start menu + Search coverage</div>
   </div>`;
   body.appendChild(root);
 }
@@ -1977,7 +2026,7 @@ const BUILTIN_APPS=[
   {id:'creator',   label:'App Creator',   icon:'✦',  color:'#0a0030'},
   {id:'modtutorial',label:'Mod Guide',    icon:'📖', color:'#0a1800'},
   {id:'updatelog', label:'Update Log',    icon:'📋', color:'#001820'},
-  {id:'appstore',  label:'App Store',  icon:'🛍️',color:'#001030'},
+  {id:'appstore',  label:'Nexus Store',  icon:'🛍️',color:'#001030'},
   {id:'finder',    label:'Finder',         icon:'📁', color:'#001530'},
   {id:'settings',  label:'Settings',      icon:'⚙️',color:'#030e1e'},
 ];
@@ -2041,18 +2090,38 @@ function buildVaultApp(body){
 
 /* ── Pet Settings ── */
 function openPetSettings(){
-  WM.create('pets','DESKTOP PETS','🐱',460,400,body=>{
+  WM.create('pets','DESKTOP PETS','🐱',480,430,body=>{
     body.style.overflow='auto';body.style.padding='16px';body.innerHTML=buildPetHTML();
   });
 }
 function buildPetHTML(){
   return`<div class="set-title">◈ DESKTOP PETS</div>
-  <div class="set-section"><div class="set-section-title">Enable</div><div class="toggle-row"><span class="toggle-lbl">Show Desktop Pet</span><div class="toggle-sw ${OS.petVisible?'on':''}" id="pet-toggle" onclick="togglePetVisible()"></div></div></div>
+  <div class="set-section">
+    <div class="set-section-title">Master Toggle</div>
+    <div style="font-size:11px;color:var(--text-dim);font-family:'Share Tech Mono',monospace;margin-bottom:10px">Pets now start disabled by default. Turn this on to spawn your desktop companion.</div>
+    <div class="toggle-row"><span class="toggle-lbl">Enable Desktop Pet</span><div class="toggle-sw ${OS.petVisible?'on':''}" id="pet-toggle" onclick="togglePetVisible()"></div></div>
+  </div>
   <div class="set-section"><div class="set-section-title">Select Pet</div><div class="pet-grid">${Object.entries(PET_DEFS).map(([id,def])=>`<div class="pet-card ${OS.activePetId===id?'active':''}" onclick="selectPet('${id}')"><span class="pet-card-emoji">${def.emoji}</span><span class="pet-card-name">${def.name}</span></div>`).join('')}</div></div>
-  <div class="set-section"><div class="set-section-title">Interact</div><button class="generic-btn" onclick="showPetBubble('hello! 👋')">👋 Wave Hello</button></div>`;
+  <div class="set-section"><div class="set-section-title">Interact</div>${OS.petVisible?`<button class="generic-btn" onclick="showPetBubble('hello! 👋')">👋 Wave Hello</button>`:`<div style="font-size:11px;color:var(--text-muted);font-family:'Share Tech Mono',monospace">Enable the pet first to use quick interactions.</div>`}</div>`;
 }
-function togglePetVisible(){OS.petVisible=!OS.petVisible;LS.set('tob_pet_on',OS.petVisible);const t=document.getElementById('pet-toggle');if(t)t.classList.toggle('on',OS.petVisible);if(!OS.petVisible){cancelAnimationFrame(_petRafId);document.getElementById('pet-layer').innerHTML='';}else initPet();}
-function selectPet(id){OS.activePetId=id;LS.set('tob_pet',id);const sw=WM.windows.get('pets');if(sw)sw.body.innerHTML=buildPetHTML();initPet();toast('🐾 '+(PET_DEFS[id]?.name||id));}
+function stopPet(){
+  if(_petRafId){cancelAnimationFrame(_petRafId);_petRafId=null;}
+  const layer=document.getElementById('pet-layer');
+  if(layer){layer.innerHTML='';layer.classList.add('hidden');}
+  PET.entity=null;PET.canvas=null;PET.ctx=null;
+}
+function syncPetLayerVisibility(){
+  const layer=document.getElementById('pet-layer');
+  if(layer)layer.classList.toggle('hidden',!OS.petVisible);
+}
+function togglePetVisible(){
+  OS.petVisible=!OS.petVisible;LS.set('tob_pet_on',OS.petVisible);
+  const t=document.getElementById('pet-toggle');if(t)t.classList.toggle('on',OS.petVisible);
+  syncPetLayerVisibility();
+  if(!OS.petVisible){stopPet();toast('🐾 Desktop pet disabled');}
+  else{initPet();toast('🐾 Desktop pet enabled');}
+}
+function selectPet(id){OS.activePetId=id;LS.set('tob_pet',id);const sw=WM.windows.get('pets');if(sw)sw.body.innerHTML=buildPetHTML();if(OS.petVisible)initPet();toast('🐾 '+(PET_DEFS[id]?.name||id));}
 
 /* ── Settings ── */
 function openSettings(){
@@ -2398,12 +2467,14 @@ function init(){
   applyTheme(OS.theme);
   applyWallpaper(OS.wallpaper,OS.wallpaper==='wp-custom'?OS.wpCustom:null);
   if(_masterGain)_masterGain.gain.value=OS.volume;
-  checkVersion();initBattery();buildDesktopIcons();
+  checkVersion();initBattery();buildDesktopIcons();syncPetLayerVisibility();syncStoreInstalledCache();
   BUILTIN_MODS.forEach(m=>{const saved=LS.get('tob_mod_'+m.id,false);m.enabled=saved;if(m.enabled)applyMod(m);});
-  const msgs=['LOADING CORE MODULES...','INIT DESKTOP ENVIRONMENT...','iOS GRID SYSTEM...','LOADING APPS...','STARTING SERVICES...','TOB OS v7.0 READY.'];
+  OS.mods=OS.mods.map(normalizeModDefinition);LS.set('tob_mods',OS.mods);
+  OS.mods.forEach(m=>{if(m.enabled)applyMod(m);});
+  const msgs=['LOADING CORE MODULES...','INIT DESKTOP ENVIRONMENT...','NEXUS STORE ONLINE...','LOADING APPS...','STARTING SERVICES...','TOB OS v11.1 READY.'];
   let mi=0;const msgEl=document.getElementById('boot-msg');
   const mInt=setInterval(()=>{if(msgEl)msgEl.textContent=msgs[Math.min(mi++,msgs.length-1)];if(mi>=msgs.length)clearInterval(mInt);},400);
-  setTimeout(()=>{const boot=document.getElementById('boot');if(boot){boot.classList.add('fade');setTimeout(()=>{boot.remove();initPet();},700);}},2600);
+  setTimeout(()=>{const boot=document.getElementById('boot');if(boot){boot.classList.add('fade');setTimeout(()=>{boot.remove();if(OS.petVisible)initPet();else syncPetLayerVisibility();},700);}},2600);
 
   // Init new systems
   liveWP.init();
@@ -3203,145 +3274,111 @@ function toggleWidgetPanel(force){
 
 /* ── 6. APP STORE ── */
 const APP_STORE_CATALOG = [
-  {id:'as_notes',name:'QuickNotes',icon:'📝',cat:'Productivity',desc:'A fast, minimal note-taking app with markdown support.',screenshots:['📝','✏️','📄'],featured:true,htmlApp:`<!DOCTYPE html><html><head><style>body{margin:0;background:#010812;color:#c8e8ff;font-family:Rajdhani,sans-serif;padding:16px;}textarea{width:100%;height:calc(100vh - 80px);background:rgba(0,15,40,.8);border:1px solid rgba(0,180,255,.25);border-radius:10px;color:#c8e8ff;font-size:14px;padding:12px;resize:none;outline:none;box-sizing:border-box;}h2{font-size:12px;color:#00b4ff;font-family:monospace;letter-spacing:3px;margin-bottom:10px;}button{padding:5px 14px;border-radius:6px;background:rgba(0,180,255,.15);border:1px solid rgba(0,180,255,.3);color:#00b4ff;cursor:pointer;font-size:10px;}</style></head><body><h2>◈ QUICKNOTES</h2><button onclick="document.querySelector('textarea').value='';localStorage.removeItem('qn')">+ New</button> <button onclick="localStorage.setItem('qn',document.querySelector('textarea').value);alert('Saved!')">💾 Save</button><textarea placeholder="Start typing...">${''}</textarea><script>const ta=document.querySelector('textarea');ta.value=localStorage.getItem('qn')||'';<\/script></body></html>`},
-  {id:'as_draw',name:'PixelDraw',icon:'🎨',cat:'Creative',desc:'Draw on a canvas with neon brushes. Express your creativity inside TOB OS.',screenshots:['🎨','✏️','🖼️'],featured:true,htmlApp:`<!DOCTYPE html><html><head><style>body{margin:0;background:#010812;display:flex;flex-direction:column;height:100vh;}#tb{height:40px;background:rgba(2,8,22,.9);border-bottom:1px solid rgba(0,180,255,.2);display:flex;align-items:center;gap:8px;padding:0 12px;flex-shrink:0;}button{padding:4px 10px;border-radius:5px;background:rgba(0,180,255,.1);border:1px solid rgba(0,180,255,.25);color:#00b4ff;cursor:pointer;font-size:10px;}canvas{flex:1;cursor:crosshair;display:block;}</style></head><body><div id="tb"><b style="color:#00b4ff;font-family:monospace;font-size:10px">◈ PIXELDRAW</b> <input type="color" value="#00b4ff" id="cl" style="width:26px;height:22px;border:none;background:none;cursor:pointer;"> <input type="range" min="1" max="20" value="4" id="sz"> <button onclick="ctx.clearRect(0,0,cv.width,cv.height)">Clear</button></div><canvas id="cv"></canvas><script>const cv=document.getElementById('cv');const ctx=cv.getContext('2d');function resize(){cv.width=cv.offsetWidth;cv.height=cv.offsetHeight;}resize();window.onresize=resize;let drawing=false,lx=0,ly=0;cv.addEventListener('mousedown',e=>{drawing=true;const r=cv.getBoundingClientRect();lx=e.clientX-r.left;ly=e.clientY-r.top;});cv.addEventListener('mousemove',e=>{if(!drawing)return;const r=cv.getBoundingClientRect();const x=e.clientX-r.left,y=e.clientY-r.top;ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(x,y);ctx.strokeStyle=document.getElementById('cl').value;ctx.lineWidth=document.getElementById('sz').value;ctx.lineCap='round';ctx.stroke();lx=x;ly=y;});cv.addEventListener('mouseup',()=>drawing=false);<\/script></body></html>`},
-  {id:'as_timer',name:'Focus Timer',icon:'⏱️',cat:'Productivity',desc:'Pomodoro-style focus timer to boost your productivity.',screenshots:['⏱️','🎯','📊'],featured:false,htmlApp:`<!DOCTYPE html><html><head><style>body{margin:0;background:#010812;color:#c8e8ff;font-family:Orbitron,monospace;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:20px;}#t{font-size:72px;font-weight:900;color:#00b4ff;text-shadow:0 0 30px #00b4ff;}button{padding:10px 28px;border-radius:20px;background:linear-gradient(135deg,#003399,#00b4ff);border:none;color:#fff;cursor:pointer;font-family:Orbitron,monospace;font-size:11px;font-weight:700;letter-spacing:2px;margin:4px;}#status{font-size:11px;color:rgba(0,180,255,.5);letter-spacing:3px;}</style></head><body><div id="status">FOCUS SESSION</div><div id="t">25:00</div><div><button onclick="startTimer()">▶ START</button><button onclick="resetTimer()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)">↻ RESET</button></div><script>let secs=25*60,intv=null;function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}function startTimer(){if(intv)return;intv=setInterval(()=>{if(secs<=0){clearInterval(intv);intv=null;document.getElementById('status').textContent='DONE!';return;}secs--;document.getElementById('t').textContent=fmt(secs);},1000);}function resetTimer(){clearInterval(intv);intv=null;secs=25*60;document.getElementById('t').textContent=fmt(secs);document.getElementById('status').textContent='FOCUS SESSION';}<\/script></body></html>`},
-  {id:'as_snake',name:'Neon Snake',icon:'🐍',cat:'Games',desc:'Classic snake game with a neon TOB OS skin.',screenshots:['🐍','🎮','⚡'],featured:true,htmlApp:`<!DOCTYPE html><html><head><style>body{margin:0;background:#010812;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:10px;}canvas{border:1px solid rgba(0,180,255,.3);border-radius:8px;}#info{color:rgba(0,180,255,.5);font-family:monospace;font-size:11px;letter-spacing:2px;}#score{color:#00b4ff;font-family:Orbitron,monospace;font-size:14px;font-weight:700;}</style></head><body><div id="score">SCORE: 0</div><canvas id="c" width="300" height="300"></canvas><div id="info">Arrow keys to move · R to restart</div><script>const c=document.getElementById('c');const ctx=c.getContext('2d');const SZ=15,COLS=20,ROWS=20;let snake=[{x:10,y:10}],dir={x:1,y:0},food={x:5,y:5},score=0,running=true;function rFood(){food={x:Math.floor(Math.random()*COLS),y:Math.floor(Math.random()*ROWS)};}function draw(){ctx.fillStyle='#010812';ctx.fillRect(0,0,300,300);ctx.fillStyle='#ff2d6e';ctx.fillRect(food.x*SZ,food.y*SZ,SZ-1,SZ-1);snake.forEach((s,i)=>{ctx.fillStyle=i===0?'#00ffcc':'#00b4ff';ctx.fillRect(s.x*SZ,s.y*SZ,SZ-2,SZ-2);});}function tick(){if(!running)return;const head={x:snake[0].x+dir.x,y:snake[0].y+dir.y};if(head.x<0||head.x>=COLS||head.y<0||head.y>=ROWS||snake.some(s=>s.x===head.x&&s.y===head.y)){running=false;document.getElementById('info').textContent='GAME OVER · R to restart';return;}snake.unshift(head);if(head.x===food.x&&head.y===food.y){score++;document.getElementById('score').textContent='SCORE: '+score;rFood();}else snake.pop();draw();}setInterval(tick,130);document.addEventListener('keydown',e=>{if(e.key==='ArrowUp'&&dir.y===0)dir={x:0,y:-1};else if(e.key==='ArrowDown'&&dir.y===0)dir={x:0,y:1};else if(e.key==='ArrowLeft'&&dir.x===0)dir={x:-1,y:0};else if(e.key==='ArrowRight'&&dir.x===0)dir={x:1,y:0};else if(e.key==='r'||e.key==='R'){snake=[{x:10,y:10}];dir={x:1,y:0};score=0;running=true;document.getElementById('score').textContent='SCORE: 0';document.getElementById('info').textContent='Arrow keys to move · R to restart';rFood();}});rFood();draw();<\/script></body></html>`},
-  {id:'as_weather',name:'WeatherDesk',icon:'🌤️',cat:'Utilities',desc:'Minimal weather widget with animated sky display.',screenshots:['🌤️','⛅','🌧️'],featured:false,htmlApp:`<!DOCTYPE html><html><head><style>body{margin:0;background:linear-gradient(180deg,#001040,#010812);color:#c8e8ff;font-family:Orbitron,monospace;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:10px;text-align:center;}#ico{font-size:80px;}#tmp{font-size:48px;font-weight:900;color:#fff;}#desc{font-size:11px;color:rgba(200,232,255,.5);letter-spacing:3px;}#loc{font-size:9px;color:rgba(0,180,255,.4);margin-top:8px;}</style></head><body><div id="ico">🌤️</div><div id="tmp">--°</div><div id="desc">CHECKING WEATHER...</div><div id="loc">Fetching location</div><script>const icons={Clear:'☀️',Clouds:'⛅',Rain:'🌧️',Snow:'❄️',Thunderstorm:'⛈️',Drizzle:'🌦️',Mist:'🌫️'};fetch('https://ipapi.co/json/').then(r=>r.json()).then(data=>{return fetch('https://wttr.in/'+data.city+'?format=j1').then(r=>r.json()).then(w=>{const cc=w.current_condition[0];document.getElementById('tmp').textContent=cc.temp_C+'°C';document.getElementById('desc').textContent=cc.weatherDesc[0].value.toUpperCase();document.getElementById('loc').textContent=data.city+', '+data.country_name;const main=cc.weatherDesc[0].value;const key=Object.keys(icons).find(k=>main.toLowerCase().includes(k.toLowerCase()));document.getElementById('ico').textContent=icons[key]||'🌡️';});}).catch(()=>{document.getElementById('tmp').textContent='?°';document.getElementById('desc').textContent='WEATHER UNAVAILABLE';document.getElementById('loc').textContent='No internet or API unavailable';});<\/script></body></html>`},
-  {id:'as_markdown',name:'MarkdownPad',icon:'📋',cat:'Productivity',desc:'Write in Markdown and see a live preview instantly.',screenshots:['📋','✍️','👁️'],featured:false,htmlApp:`<!DOCTYPE html><html><head><style>*{box-sizing:border-box;}body{margin:0;background:#010812;display:grid;grid-template-columns:1fr 1fr;height:100vh;gap:0;}textarea{background:#010c22;color:#c8e8ff;border:none;border-right:1px solid rgba(0,180,255,.15);padding:14px;font-family:'Courier New',monospace;font-size:13px;resize:none;outline:none;}#preview{padding:14px;color:#c8e8ff;font-family:Rajdhani,sans-serif;font-size:14px;overflow-y:auto;line-height:1.7;}h1,h2,h3{color:#00b4ff;}code{background:rgba(0,180,255,.1);padding:2px 5px;border-radius:3px;font-size:12px;}pre{background:rgba(0,0,0,.4);border-radius:6px;padding:10px;overflow-x:auto;}</style></head><body><textarea id="ed" placeholder="# Hello TOB OS&#10;&#10;Write **markdown** here..." oninput="update()"></textarea><div id="preview"></div><script>function update(){const md=document.getElementById('ed').value;let h=md.replace(/^### (.+)$/gm,'<h3>$1</h3>').replace(/^## (.+)$/gm,'<h2>$1</h2>').replace(/^# (.+)$/gm,'<h1>$1</h1>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>').replace(/\n/g,'<br>');document.getElementById('preview').innerHTML=h;}update();<\/script></body></html>`},
-  {id:'as_color',name:'ColorPicker',icon:'🎨',cat:'Creative',desc:'Pick and explore colors with hex codes and neon previews.',screenshots:['🎨','🔵','✨'],featured:false,htmlApp:`<!DOCTYPE html><html><head><style>body{margin:0;background:#010812;color:#c8e8ff;font-family:Orbitron,monospace;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:18px;}#swatch{width:150px;height:150px;border-radius:20px;border:2px solid rgba(0,180,255,.3);transition:all .3s;box-shadow:0 0 40px var(--c,#00b4ff);}#hex{font-size:20px;font-weight:700;letter-spacing:4px;color:#fff;}input[type=color]{width:60px;height:40px;border:none;background:none;cursor:pointer;}label{font-size:9px;color:rgba(0,180,255,.4);letter-spacing:2px;}</style></head><body><label>SELECT COLOR</label><input type="color" value="#00b4ff" id="cp" oninput="update(this.value)"><div id="swatch"></div><div id="hex">#00B4FF</div><script>function update(v){document.getElementById('swatch').style.cssText='width:150px;height:150px;border-radius:20px;border:2px solid rgba(0,180,255,.3);background:'+v+';box-shadow:0 0 40px '+v;document.getElementById('hex').textContent=v.toUpperCase();}update('#00b4ff');<\/script></body></html>`},
+  {...getBlueprintApp('web_browser'),name:'Web Browser',cat:'Featured',desc:'Proxy-friendly browser shell with URL bar and iframe viewer.',screenshots:['🌐','🔎','🛰️'],featured:true},
+  {id:'neon_clock',label:'Neon Clock',name:'Neon Clock',icon:'🕒',cat:'Featured',desc:'Glowing fullscreen digital clock for your desktop.',screenshots:['🕒','✨','⏰'],featured:true,type:'html',size:'md',html:`<!DOCTYPE html><html><head><style>body{margin:0;height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;background:radial-gradient(circle at top,#04264a,#010812 60%);color:#fff;font-family:Orbitron,sans-serif;gap:18px}#clock{font-size:72px;font-weight:900;letter-spacing:6px;color:#00e5ff;text-shadow:0 0 30px #00b4ff,0 0 60px rgba(0,180,255,.35)}#date{font-size:14px;color:rgba(200,232,255,.7);letter-spacing:4px}button{padding:8px 16px;border-radius:999px;border:none;background:linear-gradient(135deg,#003399,#00b4ff);color:#fff;font-family:Orbitron,sans-serif;font-size:10px;cursor:pointer}body.pink #clock{color:#ff7ab8;text-shadow:0 0 30px #ff5da8,0 0 60px rgba(255,93,168,.35)}</style></head><body><div id='clock'>00:00:00</div><div id='date'>SYNCING</div><button onclick='document.body.classList.toggle("pink")'>TOGGLE CYBER-ROSE</button><script>function tick(){const d=new Date();document.getElementById('clock').textContent=d.toLocaleTimeString();document.getElementById('date').textContent=d.toDateString().toUpperCase();}tick();setInterval(tick,1000);<\/script></body></html>`},
+  {id:'snake_game',label:'Snake Game',name:'Snake Game',icon:'🐍',cat:'Featured',desc:'Classic snake game with a neon TOB OS skin.',screenshots:['🐍','🎮','⚡'],featured:true,type:'html',size:'md',html:`<!DOCTYPE html><html><head><style>body{margin:0;background:#010812;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:10px;}canvas{border:1px solid rgba(0,180,255,.3);border-radius:8px;}#info{color:rgba(0,180,255,.5);font-family:monospace;font-size:11px;letter-spacing:2px;}#score{color:#00b4ff;font-family:Orbitron,monospace;font-size:14px;font-weight:700;}</style></head><body><div id='score'>SCORE: 0</div><canvas id='c' width='300' height='300'></canvas><div id='info'>Arrow keys to move · R to restart</div><script>const c=document.getElementById('c');const ctx=c.getContext('2d');const SZ=15,COLS=20,ROWS=20;let snake=[{x:10,y:10}],dir={x:1,y:0},food={x:5,y:5},score=0,running=true;function rFood(){food={x:Math.floor(Math.random()*COLS),y:Math.floor(Math.random()*ROWS)};}function draw(){ctx.fillStyle='#010812';ctx.fillRect(0,0,300,300);ctx.fillStyle='#ff2d6e';ctx.fillRect(food.x*SZ,food.y*SZ,SZ-1,SZ-1);snake.forEach((s,i)=>{ctx.fillStyle=i===0?'#00ffcc':'#00b4ff';ctx.fillRect(s.x*SZ,s.y*SZ,SZ-2,SZ-2);});}function tick(){if(!running)return;const head={x:snake[0].x+dir.x,y:snake[0].y+dir.y};if(head.x<0||head.x>=COLS||head.y<0||head.y>=ROWS||snake.some(s=>s.x===head.x&&s.y===head.y)){running=false;document.getElementById('info').textContent='GAME OVER · R to restart';return;}snake.unshift(head);if(head.x===food.x&&head.y===food.y){score++;document.getElementById('score').textContent='SCORE: '+score;rFood();}else snake.pop();draw();}setInterval(tick,130);document.addEventListener('keydown',e=>{if(e.key==='ArrowUp'&&dir.y===0)dir={x:0,y:-1};else if(e.key==='ArrowDown'&&dir.y===0)dir={x:0,y:1};else if(e.key==='ArrowLeft'&&dir.x===0)dir={x:-1,y:0};else if(e.key==='ArrowRight'&&dir.x===0)dir={x:1,y:0};else if(e.key==='r'||e.key==='R'){snake=[{x:10,y:10}];dir={x:1,y:0};score=0;running=true;document.getElementById('score').textContent='SCORE: 0';document.getElementById('info').textContent='Arrow keys to move · R to restart';rFood();}});rFood();draw();<\/script></body></html>`},
+  {...getBlueprintApp('pokemon_game'),name:'Pokemon Game',cat:'Games',desc:'Pokemon launcher with embedded Showdown access and quick links.',screenshots:['⚡','🎮','🧢'],featured:false},
 ];
 
 const AppStore = {
-  installed: [],
-  _view: 'home',
-  _detail: null,
-  _tab: 'featured',
-  _search: '',
-
-  init() {
-    this.installed = LS.get('tob_store_installed',[]);
-  },
-
-  isInstalled(id){ return this.installed.includes(id); },
-
-  install(id) {
-    if(this.isInstalled(id)) return;
-    this.installed.push(id); LS.set('tob_store_installed',this.installed);
+  _tab:'featured',
+  init(){syncStoreInstalledCache();},
+  isInstalled(id){return OS.customApps.some(app=>app.id===id);},
+  install(id){
     const app = APP_STORE_CATALOG.find(a=>a.id===id);
     if(!app) return;
-    // Add to custom apps (avoid duplicates)
-    if(!OS.customApps.find(a=>a.id===id)){
-      OS.customApps.push({id,label:app.name,icon:app.icon,type:'html',html:app.htmlApp||'',size:'md'});
-      LS.set('tob_apps',OS.customApps);
-    }
-    try{ buildDesktopIcons(); }catch(e){}
-    try{ buildStartMenu(); }catch(e){}
-    toast('✅ ' + app.name + ' installed!');
+    installCustomAppMeta(app,{silent:true});
+    syncStoreInstalledCache();
+    toast('✅ ' + (app.name||app.label) + ' installed!');
   },
-
   uninstall(id){
-    this.installed=this.installed.filter(i=>i!==id); LS.set('tob_store_installed',this.installed);
-    OS.customApps=OS.customApps.filter(a=>a.id!==id); LS.set('tob_apps',OS.customApps);
-    buildDesktopIcons(); buildStartMenu(); toast('🗑 Uninstalled');
+    removeCustomAppMeta(id,{silent:true});
+    syncStoreInstalledCache();
+    toast('🗑 Uninstalled');
   }
 };
-
-function openAppStore(){ AppStore.init(); WM.create('appstore','APP STORE','🛍️',860,600,buildAppStoreApp); }
-
+function handleNexusUpload(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{try{const app=normalizeStoreAppMeta(JSON.parse(r.result));installCustomAppMeta(app);AppStore.init();const win=WM.windows.get('appstore');if(win)buildAppStoreApp(win.body);}catch(err){toast('⚠ Invalid app JSON');}};
+  r.readAsText(f);e.target.value='';
+}
+function openAppStore(){ AppStore.init(); WM.create('appstore','NEXUS STORE','🛍️',900,620,buildAppStoreApp); }
 function buildAppStoreApp(body){
   body.style.cssText='overflow:hidden;padding:0;';
   AppStore.init();
   let tab = AppStore._tab || 'featured';
   let search = '';
   let detailApp = null;
-
   const render = () => {
     if(detailApp){ renderDetail(); return; }
-    const catalog = search ? APP_STORE_CATALOG.filter(a=>a.name.toLowerCase().includes(search)||a.cat.toLowerCase().includes(search)) : APP_STORE_CATALOG;
+    const term=search.trim().toLowerCase();
+    const catalog = term ? APP_STORE_CATALOG.filter(a=>(a.name||a.label).toLowerCase().includes(term)||(a.cat||'').toLowerCase().includes(term)) : APP_STORE_CATALOG;
     const featured = catalog.filter(a=>a.featured);
-    const all = catalog;
     body.innerHTML = `
     <div class="store-app">
       <div class="store-topbar">
-        <span class="store-logo">🛍️ APP STORE</span>
+        <span class="store-logo">🛍️ NEXUS STORE</span>
         <input class="store-search" placeholder="Search apps..." value="${search}" oninput="__storeSearch(this.value)">
       </div>
       <div class="store-tabs">
         <div class="store-tab ${tab==='featured'?'active':''}" onclick="__storeTab('featured')">⭐ FEATURED</div>
-        <div class="store-tab ${tab==='all'?'active':''}" onclick="__storeTab('all')">ALL APPS</div>
         <div class="store-tab ${tab==='installed'?'active':''}" onclick="__storeTab('installed')">✅ INSTALLED</div>
+        <div class="store-tab ${tab==='upload'?'active':''}" onclick="__storeTab('upload')">⬆️ UPLOAD</div>
       </div>
       <div class="store-body" id="store-body"></div>
     </div>`;
     const storeBody = body.querySelector('#store-body');
-
     if(tab==='featured'){
-      storeBody.innerHTML = `<div class="store-section-title">⭐ FEATURED APPS</div><div class="store-featured-row" id="store-featured"></div><div class="store-section-title" style="margin-top:8px">📦 ALL APPS</div><div class="store-app-grid" id="store-grid"></div>`;
-      const fr = storeBody.querySelector('#store-featured');
-      featured.forEach(app=>{ fr.appendChild(makeFeaturedCard(app)); });
-      const gr = storeBody.querySelector('#store-grid');
-      all.forEach(app=>{ gr.appendChild(makeAppCard(app)); });
-    } else if(tab==='all'){
-      storeBody.innerHTML = `<div class="store-section-title">📦 ALL APPS (${all.length})</div><div class="store-app-grid" id="store-grid"></div>`;
-      const gr = storeBody.querySelector('#store-grid');
-      all.forEach(app=>{ gr.appendChild(makeAppCard(app)); });
+      storeBody.innerHTML = `<div class="store-section-title">⭐ FEATURED APPS</div><div class="store-featured-row" id="store-featured"></div><div class="store-section-title" style="margin-top:8px">📦 ALL FEATURED DOWNLOADS</div><div class="store-app-grid" id="store-grid"></div>`;
+      const fr = storeBody.querySelector('#store-featured'); featured.forEach(app=>fr.appendChild(makeFeaturedCard(app)));
+      const gr = storeBody.querySelector('#store-grid'); catalog.forEach(app=>gr.appendChild(makeAppCard(app)));
+    } else if(tab==='installed'){
+      const installedList = OS.customApps;
+      if(!installedList.length)storeBody.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:60%;gap:14px"><div style="font-size:48px;opacity:.2">🛍️</div><div style="font-family:'Orbitron',sans-serif;font-size:12px;color:var(--neon);letter-spacing:3px">NO APPS INSTALLED</div><div style="font-size:11px;color:var(--text-dim)">Install a featured app or upload your own JSON package.</div></div>`;
+      else {storeBody.innerHTML = `<div class="store-section-title">✅ INSTALLED APPS</div><div class="store-app-grid" id="store-grid"></div>`;const gr = storeBody.querySelector('#store-grid'); installedList.forEach(app=>gr.appendChild(makeAppCard(app,true)));}
     } else {
-      const installedList = APP_STORE_CATALOG.filter(a=>AppStore.isInstalled(a.id));
-      if(!installedList.length){
-        storeBody.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:60%;gap:14px"><div style="font-size:48px;opacity:.2">🛍️</div><div style="font-family:'Orbitron',sans-serif;font-size:12px;color:var(--neon);letter-spacing:3px">NO APPS INSTALLED</div><div style="font-size:11px;color:var(--text-dim)">Browse Featured or All Apps to install.</div></div>`;
-      } else {
-        storeBody.innerHTML = `<div class="store-section-title">✅ INSTALLED APPS</div><div class="store-app-grid" id="store-grid"></div>`;
-        const gr = storeBody.querySelector('#store-grid');
-        installedList.forEach(app=>{ gr.appendChild(makeAppCard(app)); });
-      }
+      storeBody.innerHTML = `<div class="store-upload-panel"><div class="store-upload-drop"><span class="store-upload-pill">.json installer</span><strong>Upload a TOB OS app package</strong><p>Install apps from a simple JSON file containing <code>name</code>, <code>icon</code>, and either <code>url</code> or <code>html</code>. Uploaded apps are saved to localStorage and appear on the desktop immediately.</p><button class="generic-btn" style="margin-top:0;width:auto;padding:10px 14px" onclick="document.getElementById('nexus-app-upload').click()">Choose JSON File</button><div class="store-feature-flags"><span class="store-feature-flag">Fields: id / name / icon</span><span class="store-feature-flag">Use url or html</span><span class="store-feature-flag">Optional size: sm / md / lg</span></div></div><div class="store-upload-meta"><div class="store-section-title" style="margin-top:0">Upload Format</div><div class="store-upload-list"><div>{ "name": "My Portal", "icon": "🚀", "url": "https://example.com" }</div><div>{ "name": "Mini App", "icon": "✨", "html": "&lt;!DOCTYPE html&gt;..." }</div><div>Installed apps sync to desktop, Start, and Search automatically.</div></div></div></div>`;
     }
-
-    window.__storeSearch = v=>{ search=v.toLowerCase(); render(); };
+    window.__storeSearch = v=>{ search=v; render(); };
     window.__storeTab = t=>{ tab=t; AppStore._tab=t; render(); };
-    window.__storeDetail = id=>{ detailApp=APP_STORE_CATALOG.find(a=>a.id===id); render(); };
+    window.__storeDetail = id=>{ detailApp=(APP_STORE_CATALOG.find(a=>a.id===id)||OS.customApps.find(a=>a.id===id)); render(); };
     window.__storeInstall = id=>{ runInstallAnim(id); };
     window.__storeUninstall = id=>{ AppStore.uninstall(id); render(); };
   };
-
   const makeFeaturedCard = (app) => {
     const inst = AppStore.isInstalled(app.id);
     const card = document.createElement('div');
-    card.className = 'store-featured-card'; card.style.position='relative';
+    card.className = 'store-featured-card';
     card.innerHTML = `
       <div class="store-featured-icon">${app.icon}</div>
-      <div class="store-featured-name">${app.name}</div>
+      <div class="store-featured-name">${app.name||app.label}</div>
       <div class="store-featured-desc">${app.desc}</div>
-      <span class="store-featured-tag new">NEW</span>
-      <button class="store-install-btn ${inst?'installed':'get'}" style="position:absolute;top:10px;right:10px" onclick="event.stopPropagation();${inst?'':'__storeInstall(\''+app.id+'\')'}">
-        ${inst?'✅ INSTALLED':'GET'}
-      </button>`;
+      <span class="store-featured-tag new">FEATURED</span>
+      <div class="store-feature-flags"><span class="store-feature-flag">${app.cat||'Custom'}</span><span class="store-feature-flag">${app.type==='html'?'Embedded app':'Web link'}</span></div>
+      <button class="store-install-btn ${inst?'installed':'get'}" style="position:absolute;top:10px;right:10px" onclick="event.stopPropagation();${inst?'':'__storeInstall(\''+app.id+'\')'}">${inst?'✅ INSTALLED':'DOWNLOAD'}</button>`;
     card.onclick = () => { detailApp=app; render(); };
     return card;
   };
-
-  const makeAppCard = (app) => {
+  const makeAppCard = (app,installedView=false) => {
     const inst = AppStore.isInstalled(app.id);
     const card = document.createElement('div');
     card.className = `store-app-card ${inst?'installed':''}`;
     card.innerHTML = `
       <div class="store-app-icon">${app.icon}</div>
-      <div class="store-app-name">${app.name}</div>
-      <div class="store-app-cat">${app.cat}</div>
-      <button class="store-install-btn ${inst?'installed':'get'}" onclick="event.stopPropagation();${inst?'__storeUninstall(\''+app.id+'\')':'__storeInstall(\''+app.id+'\')'}">
-        ${inst?'🗑 REMOVE':'GET'}
-      </button>`;
+      <div class="store-app-name">${app.name||app.label}</div>
+      <div class="store-app-cat">${installedView?'Custom App':(app.cat||'Featured')}</div>
+      <button class="store-install-btn ${inst&&!installedView?'installed':'get'}" onclick="event.stopPropagation();${inst?'__storeUninstall(\''+app.id+'\')':'__storeInstall(\''+app.id+'\')'}">${inst?'🗑 REMOVE':'DOWNLOAD'}</button>`;
     card.onclick = ()=>{ detailApp=app; render(); };
     return card;
   };
-
   const renderDetail = () => {
     if(!detailApp) return;
     const inst = AppStore.isInstalled(detailApp.id);
     body.innerHTML = `
     <div class="store-app">
       <div class="store-topbar">
-        <span class="store-logo">🛍️ APP STORE</span>
+        <span class="store-logo">🛍️ NEXUS STORE</span>
         <input class="store-search" placeholder="Search apps..." oninput="__storeSearch(this.value)">
       </div>
       <div class="store-body">
@@ -3350,52 +3387,38 @@ function buildAppStoreApp(body){
           <div class="store-detail-header">
             <div class="store-detail-icon">${detailApp.icon}</div>
             <div class="store-detail-info">
-              <div class="store-detail-name">${detailApp.name}</div>
-              <div class="store-detail-dev">${detailApp.cat} · Free</div>
-              <button class="store-install-btn ${inst?'installed':'get'}" style="margin-top:8px" onclick="${inst?'__storeUninstall(\''+detailApp.id+'\')':'__storeInstall(\''+detailApp.id+'\')'}">
-                ${inst?'🗑 REMOVE':'🛍️ GET APP'}
-              </button>
+              <div class="store-detail-name">${detailApp.name||detailApp.label}</div>
+              <div class="store-detail-dev">${detailApp.cat||'Custom'} · Persisted locally</div>
+              <button class="store-install-btn ${inst?'installed':'get'}" style="margin-top:8px" onclick="${inst?'__storeUninstall(\''+detailApp.id+'\')':'__storeInstall(\''+detailApp.id+'\')'}">${inst?'🗑 REMOVE':'🛍️ DOWNLOAD APP'}</button>
             </div>
           </div>
-          <div class="store-detail-desc">${detailApp.desc}</div>
+          <div class="store-detail-desc">${detailApp.desc||'Installed into TOB OS and available from the desktop, Start menu, and Search.'}</div>
           <div class="store-section-title">PREVIEW</div>
-          <div class="store-screenshots">${(detailApp.screenshots||[]).map(s=>`<div class="store-screenshot">${s}</div>`).join('')}</div>
+          <div class="store-screenshots">${(detailApp.screenshots||[detailApp.icon||'📱']).map(s=>`<div class="store-screenshot">${s}</div>`).join('')}</div>
         </div>
       </div>
     </div>`;
     window.__storeBack = ()=>{ detailApp=null; render(); };
-    window.__storeSearch = v=>{ search=v.toLowerCase(); detailApp=null; render(); };
+    window.__storeSearch = v=>{ search=v; detailApp=null; render(); };
     window.__storeInstall = id=>{ runInstallAnim(id); };
     window.__storeUninstall = id=>{ AppStore.uninstall(id); detailApp=null; render(); };
   };
-
   const ANIM_TYPES = ['circuit','data_stream','energy_core','cogs'];
   const runInstallAnim = (id) => {
     const app = APP_STORE_CATALOG.find(a=>a.id===id);
     if(!app) return;
     const animType = ANIM_TYPES[Math.floor(Math.random()*ANIM_TYPES.length)];
-    // Show animation in a centered fixed overlay over the store body
     const storeBody = body.querySelector('.store-body') || body;
     const overlay = document.createElement('div');
     overlay.className='store-anim-overlay';
     overlay.style.cssText='position:absolute;inset:0;z-index:20;background:rgba(1,6,16,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;border-radius:inherit;';
-    const cv = document.createElement('canvas');
-    cv.className='store-anim-canvas'; cv.width=80; cv.height=80;
-    const lbl = document.createElement('div');
-    lbl.className='store-anim-label'; lbl.textContent='INSTALLING '+app.name.toUpperCase()+'...';
-    overlay.appendChild(cv); overlay.appendChild(lbl);
-    storeBody.style.position='relative';
-    storeBody.appendChild(overlay);
-    runInstallCanvas(cv, animType, ()=>{
-      overlay.remove();
-      AppStore.install(id);
-      render();
-    });
+    const cv = document.createElement('canvas'); cv.className='store-anim-canvas'; cv.width=80; cv.height=80;
+    const lbl = document.createElement('div'); lbl.className='store-anim-label'; lbl.textContent='INSTALLING '+(app.name||app.label).toUpperCase()+'...';
+    overlay.appendChild(cv); overlay.appendChild(lbl); storeBody.style.position='relative'; storeBody.appendChild(overlay);
+    runInstallCanvas(cv, animType, ()=>{ overlay.remove(); AppStore.install(id); render(); });
   };
-
   render();
 }
-
 function runInstallCanvas(cv, type, onDone){
   const ctx = cv.getContext('2d');
   const W=cv.width, H=cv.height;
@@ -3419,8 +3442,7 @@ function runInstallCanvas(cv, type, onDone){
         ctx.beginPath();ctx.arc(x,y+H*0.3,3,0,Math.PI*2);ctx.fillStyle=`rgba(0,255,200,${0.2+prog*0.6})`;ctx.fill();
         ctx.beginPath();ctx.arc(x,y+H*0.5,2,0,Math.PI*2);ctx.fillStyle=`rgba(0,180,255,${0.15+prog*0.5})`;ctx.fill();
       }
-      ctx.fillStyle=`rgba(0,180,255,${prog*0.8})`; ctx.font='bold 10px monospace';
-      ctx.fillText(`${Math.round(prog*100)}%`,W/2-12,H-8);
+      ctx.fillStyle=`rgba(0,180,255,${prog*0.8})`; ctx.font='bold 10px monospace'; ctx.fillText(`${Math.round(prog*100)}%`,W/2-12,H-8);
     } else if(type==='energy_core'){
       const pulse=0.7+Math.sin(t*3)*0.3;
       const g=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,30*prog*pulse);
@@ -3429,15 +3451,11 @@ function runInstallCanvas(cv, type, onDone){
       for(let i=0;i<6;i++){const a=t+i*(Math.PI/3);const r=20+prog*12;ctx.beginPath();ctx.arc(W/2+Math.cos(a)*r,H/2+Math.sin(a)*r,3,0,Math.PI*2);ctx.fillStyle=`rgba(0,255,200,${0.5+Math.sin(t+i)*0.3})`;ctx.fill();}
       ctx.strokeStyle=`rgba(0,255,200,${0.3+Math.sin(t)*0.2})`;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(W/2,H/2,30*prog,0,Math.PI*2);ctx.stroke();
     } else if(type==='cogs'){
-      const drawCog=(cx,cy,r,teeth,angle,col)=>{ctx.save();ctx.translate(cx,cy);ctx.rotate(angle);ctx.beginPath();for(let i=0;i<teeth;i++){const a1=i/teeth*Math.PI*2,a2=(i+0.4)/teeth*Math.PI*2,a3=(i+0.6)/teeth*Math.PI*2,a4=(i+1)/teeth*Math.PI*2;ctx.lineTo(Math.cos(a1)*r,Math.sin(a1)*r);ctx.lineTo(Math.cos(a1)*(r+5),Math.sin(a1)*(r+5));ctx.lineTo(Math.cos(a2)*(r+5),Math.sin(a2)*(r+5));ctx.lineTo(Math.cos(a2)*r,Math.sin(a2)*r);}ctx.closePath();ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.stroke();ctx.beginPath();ctx.arc(0,0,r*0.4,0,Math.PI*2);ctx.stroke();ctx.restore();};
-      drawCog(25,30,14,8,t,`rgba(0,180,255,${0.4+prog*0.4})`);
-      drawCog(54,30,10,6,-t*1.4,`rgba(0,255,200,${0.3+prog*0.5})`);
-      drawCog(40,52,8,5,t*1.75,`rgba(100,100,255,${0.35+prog*0.4})`);
+      const drawCog=(cx,cy,r,teeth,angle,col)=>{ctx.save();ctx.translate(cx,cy);ctx.rotate(angle);ctx.beginPath();for(let i=0;i<teeth;i++){const a1=i/teeth*Math.PI*2,a2=(i+0.4)/teeth*Math.PI*2;ctx.lineTo(Math.cos(a1)*r,Math.sin(a1)*r);ctx.lineTo(Math.cos(a1)*(r+5),Math.sin(a1)*(r+5));ctx.lineTo(Math.cos(a2)*(r+5),Math.sin(a2)*(r+5));ctx.lineTo(Math.cos(a2)*r,Math.sin(a2)*r);}ctx.closePath();ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.stroke();ctx.beginPath();ctx.arc(0,0,r*0.4,0,Math.PI*2);ctx.stroke();ctx.restore();};
+      drawCog(25,30,14,8,t,`rgba(0,180,255,${0.4+prog*0.4})`); drawCog(54,30,10,6,-t*1.4,`rgba(0,255,200,${0.3+prog*0.5})`); drawCog(40,52,8,5,t*1.75,`rgba(100,100,255,${0.35+prog*0.4})`);
     }
-  };
-  loop();
+  }; loop();
 }
-
 /* ── OVERRIDE openApp to add new routes ── */
 const _origOpenApp = openApp;
 window.openApp = function(id){
