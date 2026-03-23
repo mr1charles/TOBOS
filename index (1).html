@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MR1CHARLES — Project Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════
+   MR1CHARLES · PROJECT HUB
+   github.com/mr1charles
+══════════════════════════════════════════════ */
+:root {
+  --bg: #010812;
+  --bg2: #040e1e;
+  --panel: rgba(5,18,42,.88);
+  --panel-solid: #03111e;
+  --border: rgba(0,180,255,.18);
+  --neon: #00b4ff;
+  --neon2: #0040ff;
+  --neon3: #00ffcc;
+  --accent: #ff2d6e;
+  --gold: #ffd700;
+  --green: #39ff14;
+  --text: #c8e8ff;
+  --text-dim: rgba(150,200,240,.6);
+  --text-muted: rgba(100,160,210,.35);
+  --glow: 0 0 20px rgba(0,180,255,.4);
+  --glow-lg: 0 0 40px rgba(0,180,255,.35), 0 0 80px rgba(0,60,200,.15);
+  --r: 14px;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html, body {
+  width: 100%; min-height: 100%;
+  font-family: 'Rajdhani', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: rgba(0,20,50,.2); }
+::-webkit-scrollbar-thumb { background: rgba(0,180,255,.3); border-radius: 2px; }
+
+/* ── BACKGROUND ── */
+#bg-canvas {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none;
+}
+.noise {
+  position: fixed; inset: 0; z-index: 1;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity: .4;
+}
+#scanlines {
+  position: fixed; inset: 0; z-index: 2; pointer-events: none;
+  background: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.018) 2px,rgba(0,0,0,.018) 4px);
+}
+
+/* ── LAYOUT ── */
+#root { position: relative; z-index: 10; min-height: 100vh; }
+
+/* ── HEADER ── */
+header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(1,6,18,.96);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(24px) saturate(180%);
+  padding: 0 clamp(16px,4vw,60px);
+  display: flex; align-items: center; gap: 0;
+  height: 64px;
+}
+
+.header-logo {
+  display: flex; align-items: center; gap: 12px;
+  text-decoration: none;
+}
+.logo-mark {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, #001840, #003399);
+  border: 1.5px solid rgba(0,180,255,.5);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px; font-weight: 900;
+  color: var(--neon);
+  box-shadow: 0 0 16px rgba(0,100,255,.35);
+  flex-shrink: 0;
+}
+.logo-text {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px; font-weight: 900;
+  color: var(--text); letter-spacing: 4px;
+  text-transform: uppercase;
+}
+.logo-sub {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; color: var(--text-muted);
+  letter-spacing: 2px; margin-top: 1px;
+}
+
+.header-right {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 12px;
+}
+.github-link {
+  display: flex; align-items: center; gap: 7px;
+  padding: 7px 16px;
+  border-radius: 8px;
+  background: rgba(0,180,255,.06);
+  border: 1px solid rgba(0,180,255,.22);
+  color: var(--text-dim);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px; letter-spacing: 1px;
+  text-decoration: none;
+  transition: all .2s;
+}
+.github-link:hover {
+  background: rgba(0,180,255,.15);
+  color: var(--neon);
+  border-color: rgba(0,180,255,.5);
+  box-shadow: var(--glow);
+}
+.status-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  animation: pulse 2.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity:1; transform:scale(1); }
+  50% { opacity:.35; transform:scale(.7); }
+}
+
+/* ── NAV TABS ── */
+.tab-bar {
+  position: sticky; top: 64px; z-index: 99;
+  background: rgba(1,6,18,.9);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+  padding: 0 clamp(16px,4vw,60px);
+  display: flex; gap: 0; overflow-x: auto;
+  scrollbar-width: none;
+}
+.tab-bar::-webkit-scrollbar { display: none; }
+
+.tab-btn {
+  padding: 14px 24px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all .2s;
+  white-space: nowrap;
+  background: none; border-top:none; border-left:none; border-right:none;
+  display: flex; align-items: center; gap: 7px;
+}
+.tab-btn:hover { color: var(--text-dim); }
+.tab-btn.active {
+  color: var(--neon);
+  border-bottom-color: var(--neon);
+}
+.tab-count {
+  background: rgba(0,180,255,.15);
+  border: 1px solid rgba(0,180,255,.25);
+  border-radius: 10px;
+  padding: 1px 7px;
+  font-size: 8px;
+  color: var(--neon);
+}
+
+/* ── MAIN CONTENT ── */
+main {
+  padding: clamp(24px,4vw,52px) clamp(16px,4vw,60px);
+  max-width: 1400px; margin: 0 auto;
+}
+
+/* ── SECTION PANELS ── */
+.section-panel { display: none; }
+.section-panel.active { display: block; }
+
+/* ── FEATURED BANNER ── */
+.featured-banner {
+  position: relative;
+  background: linear-gradient(135deg, rgba(0,25,70,.95) 0%, rgba(0,8,30,.95) 50%, rgba(0,30,50,.9) 100%);
+  border: 1px solid rgba(0,180,255,.35);
+  border-radius: 20px;
+  padding: clamp(24px,4vw,44px);
+  margin-bottom: 36px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all .3s cubic-bezier(.4,0,.2,1);
+  text-decoration: none;
+  display: block;
+}
+.featured-banner::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 80% 50%, rgba(0,100,255,.12) 0%, transparent 65%),
+              radial-gradient(ellipse at 20% 80%, rgba(0,255,200,.06) 0%, transparent 55%);
+  pointer-events: none;
+}
+.featured-banner::after {
+  content: '';
+  position: absolute; top: -1px; left: 30px; right: 30px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,180,255,.6), transparent);
+}
+.featured-banner:hover {
+  border-color: rgba(0,180,255,.6);
+  box-shadow: var(--glow-lg);
+  transform: translateY(-2px);
+}
+.featured-badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: rgba(0,180,255,.12);
+  border: 1px solid rgba(0,180,255,.3);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; color: var(--neon3);
+  letter-spacing: 2px; margin-bottom: 16px;
+}
+.featured-badge-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--neon3); box-shadow: 0 0 6px var(--neon3);
+  animation: pulse 1.6s infinite;
+}
+.featured-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(24px, 4vw, 42px);
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 4px;
+  line-height: 1.1;
+  margin-bottom: 8px;
+  text-shadow: 0 0 40px rgba(0,180,255,.4);
+}
+.featured-version {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(11px,1.5vw,15px);
+  color: var(--neon);
+  letter-spacing: 6px;
+  margin-bottom: 14px;
+}
+.featured-desc {
+  font-size: clamp(12px,1.4vw,15px);
+  color: var(--text-dim);
+  max-width: 520px;
+  line-height: 1.7;
+  margin-bottom: 22px;
+}
+.featured-tags {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px;
+}
+.tag {
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 1px;
+}
+.tag-blue { background: rgba(0,180,255,.1); color: var(--neon); border: 1px solid rgba(0,180,255,.25); }
+.tag-green { background: rgba(57,255,20,.1); color: var(--green); border: 1px solid rgba(57,255,20,.2); }
+.tag-gold { background: rgba(255,215,0,.1); color: var(--gold); border: 1px solid rgba(255,215,0,.2); }
+.tag-pink { background: rgba(255,45,110,.1); color: var(--accent); border: 1px solid rgba(255,45,110,.2); }
+
+.launch-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 13px 32px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #003399, #00b4ff);
+  border: none;
+  color: #fff;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 3px;
+  cursor: pointer;
+  transition: all .2s;
+  text-decoration: none;
+  box-shadow: 0 0 24px rgba(0,140,255,.4);
+}
+.launch-btn:hover {
+  transform: scale(1.04);
+  box-shadow: 0 0 36px rgba(0,180,255,.6);
+}
+.launch-btn svg { width: 14px; height: 14px; fill: #fff; }
+
+.featured-gfx {
+  position: absolute; right: clamp(20px,5vw,60px); top: 50%;
+  transform: translateY(-50%);
+  font-size: clamp(60px,10vw,120px);
+  opacity: .12;
+  pointer-events: none;
+  filter: blur(2px);
+  user-select: none;
+}
+
+/* ── SECTION HEADER ── */
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+}
+.section-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px; font-weight: 700;
+  color: var(--neon); letter-spacing: 4px;
+  display: flex; align-items: center; gap: 10px;
+}
+.section-title::before {
+  content: '';
+  width: 3px; height: 14px;
+  background: var(--neon);
+  border-radius: 2px;
+  box-shadow: 0 0 8px var(--neon);
+  display: block;
+}
+.section-meta {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; color: var(--text-muted);
+  letter-spacing: 1px;
+}
+
+/* ── VERSION GRID ── */
+.version-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+  margin-bottom: 40px;
+}
+
+.version-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 20px;
+  cursor: pointer;
+  transition: all .22s cubic-bezier(.4,0,.2,1);
+  text-decoration: none;
+  color: inherit;
+  display: flex; flex-direction: column; gap: 10px;
+  position: relative; overflow: hidden;
+}
+.version-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.04), transparent 60%);
+  pointer-events: none;
+}
+.version-card:hover {
+  border-color: rgba(0,180,255,.45);
+  background: rgba(5,22,55,.88);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 32px rgba(0,0,0,.45), var(--glow);
+}
+.version-card.latest {
+  border-color: rgba(0,180,255,.4);
+  background: rgba(0,20,55,.9);
+}
+.version-card.latest::after {
+  content: 'LATEST';
+  position: absolute; top: 12px; right: 12px;
+  background: linear-gradient(135deg, #003399, #00b4ff);
+  color: #fff;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 7px; letter-spacing: 2px;
+  padding: 2px 8px; border-radius: 10px;
+}
+
+.vc-top {
+  display: flex; align-items: flex-start; gap: 12px;
+}
+.vc-icon {
+  width: 44px; height: 44px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #001840, #003399);
+  border: 1.5px solid rgba(0,180,255,.35);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,.4);
+}
+.vc-info { flex: 1; min-width: 0; }
+.vc-name {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px; font-weight: 700;
+  color: var(--text); letter-spacing: 2px;
+  margin-bottom: 3px;
+}
+.vc-ver {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; color: var(--neon);
+  letter-spacing: 1px;
+}
+.vc-desc {
+  font-size: 11px; color: var(--text-dim);
+  line-height: 1.6;
+}
+.vc-tags {
+  display: flex; flex-wrap: wrap; gap: 5px;
+}
+.vc-tag {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8px; letter-spacing: .5px;
+  padding: 2px 8px; border-radius: 8px;
+  background: rgba(0,180,255,.08);
+  border: 1px solid rgba(0,180,255,.15);
+  color: var(--text-dim);
+}
+.vc-bottom {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 4px;
+}
+.vc-date {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8px; color: var(--text-muted);
+  letter-spacing: 1px;
+}
+.vc-launch {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: rgba(0,180,255,.1);
+  border: 1px solid rgba(0,180,255,.28);
+  color: var(--neon);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; letter-spacing: 1px;
+  transition: all .15s;
+  text-decoration: none;
+}
+.version-card:hover .vc-launch {
+  background: rgba(0,180,255,.2);
+  border-color: var(--neon);
+  box-shadow: 0 0 12px rgba(0,180,255,.25);
+}
+
+/* ── APP GRID (non-OS apps) ── */
+.app-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+  margin-bottom: 40px;
+}
+
+.app-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 22px 18px;
+  cursor: pointer;
+  transition: all .22s;
+  text-decoration: none;
+  color: inherit;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 10px;
+  text-align: center;
+  position: relative; overflow: hidden;
+}
+.app-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.04), transparent 60%);
+  pointer-events: none;
+}
+.app-card:hover {
+  border-color: rgba(0,180,255,.45);
+  background: rgba(5,22,55,.88);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 32px rgba(0,0,0,.45), var(--glow);
+}
+.ac-icon {
+  width: 56px; height: 56px;
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 14px rgba(0,0,0,.4);
+  border: 1.5px solid rgba(0,180,255,.25);
+}
+.ac-name {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px; font-weight: 700;
+  color: var(--text); letter-spacing: 2px;
+}
+.ac-desc {
+  font-size: 10px; color: var(--text-dim);
+  line-height: 1.5;
+}
+.ac-launch {
+  padding: 6px 18px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #003399, #00b4ff);
+  color: #fff;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8px; letter-spacing: 1px;
+  margin-top: 4px;
+  transition: all .15s;
+  text-decoration: none; display: inline-block;
+}
+.app-card:hover .ac-launch {
+  box-shadow: 0 0 14px rgba(0,180,255,.4);
+}
+
+/* ── COMING SOON CARD ── */
+.soon-card {
+  background: rgba(5,12,30,.6);
+  border: 1px dashed rgba(0,180,255,.15);
+  border-radius: var(--r);
+  padding: 22px 18px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 8px;
+  text-align: center;
+  opacity: .55;
+}
+.soon-card .ac-icon { opacity: .4; }
+.soon-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8px; color: var(--text-muted);
+  letter-spacing: 2px;
+  padding: 3px 10px;
+  border: 1px solid rgba(0,180,255,.15);
+  border-radius: 10px;
+}
+
+/* ── ABOUT SECTION ── */
+.about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 40px;
+}
+@media (max-width: 640px) {
+  .about-grid { grid-template-columns: 1fr; }
+}
+.about-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 24px;
+}
+.about-card-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9px; font-weight: 700;
+  color: var(--neon); letter-spacing: 3px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.stat-row {
+  display: flex; justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0,180,255,.05);
+  font-size: 12px;
+}
+.stat-row:last-child { border-bottom: none; }
+.stat-label { color: var(--text-dim); }
+.stat-val {
+  font-family: 'Share Tech Mono', monospace;
+  color: var(--neon); font-size: 11px;
+}
+.skill-row { margin-bottom: 12px; }
+.skill-name {
+  display: flex; justify-content: space-between;
+  font-size: 11px; color: var(--text-dim);
+  font-family: 'Share Tech Mono', monospace;
+  margin-bottom: 5px;
+}
+.skill-bar {
+  height: 4px; border-radius: 2px;
+  background: rgba(0,180,255,.1);
+  overflow: hidden;
+}
+.skill-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--neon2), var(--neon));
+  border-radius: 2px;
+  animation: skillIn 1.2s cubic-bezier(.4,0,.2,1) both;
+  animation-delay: var(--d, 0s);
+}
+@keyframes skillIn {
+  from { width: 0 !important; }
+}
+
+/* ── CHANGELOG SECTION ── */
+.changelog-entry {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--neon);
+  border-radius: 0 var(--r) var(--r) 0;
+  padding: 18px 20px;
+  margin-bottom: 12px;
+}
+.cl-version {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px; font-weight: 700;
+  color: var(--neon); letter-spacing: 3px;
+  margin-bottom: 10px;
+  display: flex; align-items: center; gap: 10px;
+}
+.cl-ver-badge {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8px; padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(0,180,255,.1);
+  border: 1px solid rgba(0,180,255,.2);
+  color: var(--text-dim); letter-spacing: 1px;
+}
+.cl-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 11px; color: var(--text-dim);
+  line-height: 1.7; padding: 2px 0;
+}
+.cl-item::before {
+  content: '◈'; color: var(--neon);
+  font-size: 8px; flex-shrink: 0; margin-top: 4px;
+}
+.cl-tag {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 7px; font-weight: 700;
+  padding: 1px 6px; border-radius: 4px;
+  vertical-align: middle; display: inline-block;
+  margin-right: 4px;
+}
+.tag-new { background: rgba(57,255,20,.12); color: var(--green); }
+.tag-fix { background: rgba(255,215,0,.12); color: var(--gold); }
+.tag-remove { background: rgba(255,45,110,.12); color: var(--accent); }
+
+/* ── SEARCH BAR ── */
+.search-wrap {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 24px;
+}
+.search-input {
+  flex: 1; max-width: 380px;
+  background: rgba(0,15,40,.7);
+  border: 1px solid rgba(0,180,255,.2);
+  border-radius: 10px;
+  padding: 10px 16px;
+  color: var(--text);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px; outline: none;
+  transition: border-color .18s;
+}
+.search-input::placeholder { color: var(--text-muted); }
+.search-input:focus { border-color: rgba(0,180,255,.5); }
+
+/* ── FOOTER ── */
+footer {
+  position: relative; z-index: 10;
+  border-top: 1px solid var(--border);
+  padding: 28px clamp(16px,4vw,60px);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+  background: rgba(1,6,18,.8);
+}
+.footer-brand {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 9px; color: var(--text-muted);
+  letter-spacing: 3px;
+}
+.footer-links {
+  display: flex; gap: 20px;
+}
+.footer-link {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; color: var(--text-muted);
+  text-decoration: none; letter-spacing: 1px;
+  transition: color .15s;
+}
+.footer-link:hover { color: var(--neon); }
+.footer-ver {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8px; color: rgba(0,180,255,.25);
+  letter-spacing: 2px;
+}
+
+/* ── TOAST ── */
+#toast {
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  z-index: 9999;
+  background: rgba(0,20,55,.97);
+  border: 1px solid var(--neon);
+  border-radius: 10px;
+  padding: 10px 22px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px; color: var(--neon);
+  letter-spacing: 1px;
+  box-shadow: var(--glow);
+  opacity: 0; pointer-events: none;
+  transition: all .3s cubic-bezier(.34,1.56,.64,1);
+  white-space: nowrap;
+}
+#toast.show {
+  opacity: 1; pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── PAGE REVEAL ── */
+.reveal {
+  opacity: 0; transform: translateY(18px);
+  animation: revealIn .5s cubic-bezier(.4,0,.2,1) both;
+}
+@keyframes revealIn {
+  to { opacity:1; transform:translateY(0); }
+}
+.version-grid .version-card:nth-child(1) { animation-delay: .05s; }
+.version-grid .version-card:nth-child(2) { animation-delay: .1s; }
+.version-grid .version-card:nth-child(3) { animation-delay: .15s; }
+.version-grid .version-card:nth-child(4) { animation-delay: .2s; }
+.version-grid .version-card:nth-child(5) { animation-delay: .25s; }
+.version-grid .version-card:nth-child(6) { animation-delay: .3s; }
+.version-grid .version-card:nth-child(7) { animation-delay: .35s; }
+.version-grid .version-card:nth-child(8) { animation-delay: .4s; }
+
+/* responsive */
+@media (max-width: 600px) {
+  .featured-gfx { display: none; }
+  .version-grid { grid-template-columns: 1fr; }
+  .app-grid { grid-template-columns: repeat(auto-fill,minmax(160px,1fr)); }
+  .header-right .github-link span { display: none; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<div class="noise"></div>
+<div id="scanlines"></div>
+<div id="toast"></div>
+
+<div id="root">
+
+<!-- HEADER -->
+<header>
+  <a class="header-logo" href="#">
+    <div class="logo-mark">M1</div>
+    <div>
+      <div class="logo-text">MR1CHARLES</div>
+      <div class="logo-sub">PROJECT HUB</div>
+    </div>
+  </a>
+  <div class="header-right">
+    <div class="status-dot"></div>
+    <a class="github-link" href="https://github.com/mr1charles" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+      <span>GitHub</span>
+    </a>
+  </div>
+</header>
+
+<!-- TAB BAR -->
+<div class="tab-bar" id="tab-bar">
+  <button class="tab-btn active" data-tab="os">
+    🖥 OPERATING SYSTEMS <span class="tab-count">8</span>
+  </button>
+  <button class="tab-btn" data-tab="apps">
+    ⚡ APPS <span class="tab-count">2</span>
+  </button>
+  <button class="tab-btn" data-tab="changelog">
+    📋 CHANGELOG
+  </button>
+  <button class="tab-btn" data-tab="about">
+    ◈ ABOUT
+  </button>
+</div>
+
+<!-- MAIN -->
+<main>
+
+  <!-- ════════ OS TAB ════════ -->
+  <div class="section-panel active" id="tab-os">
+
+    <!-- FEATURED -->
+    <a class="featured-banner reveal" href="TOBOS_v17_fixed__1_.html" target="_blank">
+      <div class="featured-gfx">🖥️</div>
+      <div class="featured-badge">
+        <div class="featured-badge-dot"></div>
+        LATEST RELEASE
+      </div>
+      <div class="featured-title">TOB OS</div>
+      <div class="featured-version">VERSION 17 · NEXUS EDITION</div>
+      <div class="featured-desc">
+        A fully browser-based operating system. No installation. No downloads.
+        Just open and experience a complete OS — with real apps, music, file system, themes, and more.
+      </div>
+      <div class="featured-tags">
+        <span class="tag tag-blue">Single File</span>
+        <span class="tag tag-green">Zero Install</span>
+        <span class="tag tag-gold">App Store</span>
+        <span class="tag tag-blue">Dark/Light Mode</span>
+        <span class="tag tag-pink">Themes</span>
+      </div>
+      <div class="launch-btn" onclick="event.stopPropagation()">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        LAUNCH TOB OS v17
+      </div>
+    </a>
+
+    <!-- VERSION HISTORY -->
+    <div class="section-header">
+      <div class="section-title">ALL VERSIONS</div>
+      <div class="section-meta">Click any card to launch that version</div>
+    </div>
+
+    <div class="version-grid">
+
+      <!-- v17 LATEST -->
+      <a class="version-card latest reveal" href="TOBOS_v17_fixed__1_.html" target="_blank">
+        <div class="vc-top">
+          <div class="vc-icon">🖥️</div>
+          <div class="vc-info">
+            <div class="vc-name">TOB OS</div>
+            <div class="vc-ver">◈ v17.0.0 — FIXED</div>
+          </div>
+        </div>
+        <div class="vc-desc">Full stability pass. App Folders, Ben 10 &amp; Stranger Things themes, Profile Pictures, Boot Studio, Widget Lab, Desktop Widget Layer.</div>
+        <div class="vc-tags">
+          <span class="vc-tag">Stable</span>
+          <span class="vc-tag">Folders</span>
+          <span class="vc-tag">Ben 10</span>
+          <span class="vc-tag">ST Theme</span>
+        </div>
+        <div class="vc-bottom">
+          <span class="vc-date">2025 · LATEST</span>
+          <span class="vc-launch">▶ LAUNCH</span>
+        </div>
+      </a>
+
+      <!-- v16 -->
+      <a class="version-card reveal" href="TOBOS_v16_fixed.html" target="_blank">
+        <div class="vc-top">
+          <div class="vc-icon">🖥️</div>
+          <div class="vc-info">
+            <div class="vc-name">TOB OS</div>
+            <div class="vc-ver">◈ v16.0.0 — FIXED</div>
+          </div>
+        </div>
+        <div class="vc-desc">Themes &amp; Folders Edition. Introduced app folders, custom themes, profile system upgrades and Widget Lab.</div>
+        <div class="vc-tags">
+          <span class="vc-tag">Fixed</span>
+          <span class="vc-tag">Folders</span>
+          <span class="vc-tag">Widgets</span>
+        </div>
+        <div class="vc-bottom">
+          <span class="vc-date">2025</span>
+          <span class="vc-launch">▶ LAUNCH</span>
+        </div>
+      </a>
+
+      <!-- v15 ALT -->
+      <a class="version-card reveal" href="TOBOS_v15__1_.html" target="_blank">
+        <div class="vc-top">
+          <div class="vc-icon">🖥️</div>
+          <div class="vc-info">
+            <div class="vc-name">TOB OS</div>
+            <div class="vc-ver">◈ v15.0.0 — ALT BUILD</div>
+          </div>
+        </div>
+        <div class="vc-desc">Alternative build of v15. User Profile system, Boot Studio, Lock Screen PIN, Desktop Widgets, and What's New popup.</div>
+        <div class="vc-tags">
+          <span class="vc-tag">Profiles</span>
+          <span class="vc-tag">PIN Lock</span>
+          <span class="vc-tag">Boot Studio</span>
+        </div>
+        <div class="vc-bottom">
+          <span class="vc-date">2025</span>
+          <span class="vc-launch">▶ LAUNCH</span>
+        </div>
+      </a>
+
+      <!-- v15 -->
+      <a class="version-card reveal" href="TOBOS_v15.html" target="_blank">
+        <div class="vc-top">
+          <div class="vc-icon">🖥️</div>
+          <div class="vc-info">
+            <div class="vc-name">TOB OS</div>
+            <div class="vc-ver">◈ v15.0.0</div>
+          </div>
+        </div>
+        <div class="vc-desc">Innovation Update. Taskbar upgrades, App Store with NeonChess, PocketSynth, NeoShell, HabitForge and more installable apps.</div>
+        <div class="vc-tags">
+          <span class="vc-tag">App Store</span>
+          <span class="vc-tag">Taskbar Pro</span>
+          <span class="vc-tag">Notch</span>
+        </div>
+        <div class="vc-bottom">
+          <span class="vc-date">2025</span>
+          <span class="vc-launch">▶ LAUNCH</span>
+        </div>
+      </a>
+
+      <!-- v14 -->
+      <a class="version-card reveal" href="TOBOS_v14.html" target="_blank">
+        <div class="vc-top">
+          <div class="vc-icon">🖥️</div>
+          <div class="vc-info">
+            <div class="vc-name">TOB OS</div>
+            <div class="vc-ver">◈ v14.0.0</div>
+          </div>
+        </div>
+        <div class="vc-desc">Control Center, Dynamic Island, Live Wallpapers, Finder, Widget Panel, Block Loader animations, and the full App Store.</div>
+        <div class="vc-tags">
+          <span class="vc-tag">Live WP</span>
+          <span class="vc-tag">Finder</span>
+          <span class="vc-tag">CC v2</span>
+        </div>
+        <div class="vc-bottom">
+          <span class="vc-date">2025</span>
+          <span class="vc-launch">▶ LAUNCH</span>
+        </div>
+      </a>
+
+      <!-- v13 -->
+      <a class="version-card reveal" href="TOBOS_v13.html" target="_blank">
+        <div class="vc-top">
+          <div class="vc-icon">🖥️</div>
+          <div class="vc-info">
+            <div class="vc-name">TOB OS</div>
+            <div class="vc-ver">◈ v13.0.0</div>
+          </div>
+        </div>
+        <div class="vc-desc">TobTube video platform, redesigned Music Player with artists tab, Task Manager, Blue Theme mod, Mod Guide app.</div>
+        <div class="vc-tags">
+          <span class="vc-tag">TobTube</span>
+          <span class="vc-tag">Task Mgr</span>
+          <span class="vc-tag">Mods</span>
+        </div>
+        <div class="vc-bottom">
+          <span class="vc-date">2025</span>
+          <span class="vc-launch">▶ LAUNCH</span>
+        </div>
+      </a>
+
+      <!-- v12 -->
+      <a class="version-card reveal" href="TOBOS_v12.html" target="_blank">
+        <div class="vc-top">
+          <div class="vc-icon">🖥️</div>
+          <div class="vc-info">
+            <div class="vc-name">TOB OS</div>
+            <div class="vc-ver">◈ v12.0.0</div>
+          </div>
+        </div>
+        <div class="vc-desc">Calculator, Web Browser, Admin Panel, updated PetTube, Mod Manager with tabs, Liquid Glass &amp; Windows 11 mods.</div>
+        <div class="vc-tags">
+          <span class="vc-tag">Calculator</span>
+          <span class="vc-tag">Admin</span>
+          <span class="vc-tag">Glass UI</span>
+        </div>
+        <div class="vc-bottom">
+          <span class="vc-date">2024</span>
+          <span class="vc-launch">▶ LAUNCH</span>
+        </div>
+      </a>
+
+      <!-- v12 MOBILE -->
+      <a class="version-card reveal" href="TOBOS_v12_mobile.html" target="_blank">
+        <div class="vc-top">
+          <div class="vc-icon">📱</div>
+          <div class="vc-info">
+            <div class="vc-name">TOB OS</div>
+            <div class="vc-ver">◈ v12.0.0 — MOBILE</div>
+          </div>
+        </div>
+        <div class="vc-desc">Touch-optimised mobile build of v12. Designed for phones and tablets with gesture navigation and responsive layout.</div>
+        <div class="vc-tags">
+          <span class="vc-tag">Mobile</span>
+          <span class="vc-tag">Touch</span>
+          <span class="vc-tag">Gestures</span>
+        </div>
+        <div class="vc-bottom">
+          <span class="vc-date">2024</span>
+          <span class="vc-launch">▶ LAUNCH</span>
+        </div>
+      </a>
+
+    </div><!-- /version-grid -->
+  </div><!-- /tab-os -->
+
+
+  <!-- ════════ APPS TAB ════════ -->
+  <div class="section-panel" id="tab-apps">
+
+    <div class="section-header" style="margin-bottom:24px">
+      <div class="section-title">APPLICATIONS</div>
+      <div class="section-meta">Standalone browser apps</div>
+    </div>
+
+    <div class="app-grid">
+
+      <a class="app-card reveal" href="MacWebOS.html" target="_blank">
+        <div class="ac-icon" style="background:linear-gradient(135deg,#1a0040,#5500aa)">🍎</div>
+        <div class="ac-name">MACWEB OS</div>
+        <div class="ac-desc">macOS-inspired web operating system built entirely in the browser. Beautiful dock, windows, and native-feel UI.</div>
+        <div class="vc-tags" style="justify-content:center">
+          <span class="vc-tag">macOS Style</span>
+          <span class="vc-tag">Dock</span>
+          <span class="vc-tag">Windows</span>
+        </div>
+        <span class="ac-launch">▶ LAUNCH</span>
+      </a>
+
+      <a class="app-card reveal" href="ai_learns.html" target="_blank">
+        <div class="ac-icon" style="background:linear-gradient(135deg,#002218,#005533)">🤖</div>
+        <div class="ac-name">AI LEARNS</div>
+        <div class="ac-desc">Interactive AI learning demonstration. Watch machine learning concepts visualized in real time, right in your browser.</div>
+        <div class="vc-tags" style="justify-content:center">
+          <span class="vc-tag">AI / ML</span>
+          <span class="vc-tag">Visual</span>
+          <span class="vc-tag">Interactive</span>
+        </div>
+        <span class="ac-launch">▶ LAUNCH</span>
+      </a>
+
+      <!-- COMING SOON placeholders -->
+      <div class="soon-card reveal">
+        <div class="ac-icon" style="background:rgba(0,20,50,.4)">🎮</div>
+        <div class="vc-name" style="font-family:Orbitron,sans-serif;font-size:10px;letter-spacing:2px;color:var(--text-muted)">GAME APP</div>
+        <div class="ac-desc" style="font-size:10px">More projects coming soon.</div>
+        <span class="soon-label">COMING SOON</span>
+      </div>
+
+      <div class="soon-card reveal">
+        <div class="ac-icon" style="background:rgba(0,20,50,.4)">🛠️</div>
+        <div class="vc-name" style="font-family:Orbitron,sans-serif;font-size:10px;letter-spacing:2px;color:var(--text-muted)">DEV TOOL</div>
+        <div class="ac-desc" style="font-size:10px">More projects coming soon.</div>
+        <span class="soon-label">COMING SOON</span>
+      </div>
+
+    </div>
+  </div><!-- /tab-apps -->
+
+
+  <!-- ════════ CHANGELOG TAB ════════ -->
+  <div class="section-panel" id="tab-changelog">
+
+    <div class="section-header" style="margin-bottom:24px">
+      <div class="section-title">CHANGELOG</div>
+      <div class="section-meta">Full release history</div>
+    </div>
+
+    <div class="changelog-entry reveal">
+      <div class="cl-version">TOB OS v17.0.0 <span class="cl-ver-badge">LATEST · STABLE</span></div>
+      <div class="cl-item"><span class="cl-tag tag-new">NEW</span> App Folders — drag one icon onto another to create a folder, fully functional with rename and remove</div>
+      <div class="cl-item"><span class="cl-tag tag-new">NEW</span> Ben 10 Theme — full Omnitrix green UI, animated dial, alien transformation flash FX</div>
+      <div class="cl-item"><span class="cl-tag tag-new">NEW</span> Stranger Things Theme — Upside Down red UI, vine SVG overlay, string lights ticker, heavy scanlines</div>
+      <div class="cl-item"><span class="cl-tag tag-new">NEW</span> Custom Profile Pictures — upload any photo as your profile picture</div>
+      <div class="cl-item"><span class="cl-tag tag-new">NEW</span> Quick lock shortcut — backtick key instantly locks the screen</div>
+      <div class="cl-item"><span class="cl-tag tag-fix">FIX</span> Lock screen no longer dismisses on click when a PIN is active</div>
+      <div class="cl-item"><span class="cl-tag tag-fix">FIX</span> Boot sequence correctly routes to profile login or first-time setup</div>
+    </div>
+
+    <div class="changelog-entry reveal">
+      <div class="cl-version">TOB OS v16.0.0 <span class="cl-ver-badge">STABLE</span></div>
+      <div class="cl-item"><span class="cl-tag tag-new">NEW</span> Boot Studio — 8 animated boot screen themes with live canvas previews, custom colors &amp; speed</div>
+      <div class="cl-item"><span class="cl-tag tag-new">NEW</span> Widget Lab — drag-and-drop widget designer, place any widget directly on the desktop</div>
+      <div class="cl-item"><span class="cl-tag tag-new">NEW</span> Desktop Widget Layer — floating widgets, draggable, resizable, positions saved to localStorage</div>
+      <div class="cl-item"><span class="cl-tag tag-new">NEW</span> User Profile System — name, avatar emoji, optional 4-digit PIN, lock screen protection</div>
+    </div>
+
+    <div class="changelog-entry reveal">
+      <div class="cl-version">TOB OS v15.0.0 <span class="cl-ver-badge">INNOVATION UPDATE</span></div>
+      <div class="cl-item"><span class="cl-tag tag-new">NEW</span> Taskbar Pro — centered icons, hover previews, right-click context menus, pin to taskbar</div>
+      <div class="cl-item"><span class="cl-tag tag-new">NEW</span> App Store with 15+ installable apps: NeonChess, PocketSynth, NeoShell, HabitForge, Rift Blaster and more</div>
+      <div class="cl-item"><span class="cl-tag tag-new">NEW</span> Dynamic Island v2 — music visualizer bars, expanded music controls, quick toggles</div>
+      <div class="cl-item"><span class="cl-tag tag-new">NEW</span> Widget Dashboard — slide-in panel with Clock, Music, Stats, Notes, Shortcuts, Calendar widgets</div>
+    </div>
+
+    <div class="changelog-entry reveal">
+      <div class="cl-version">TOB OS v14.0.0</div>
+      <div class="cl-item"><span class="cl-tag tag-new">NEW</span> Live Wallpaper engine — Waves, Galaxy, Neon Grid, Aurora, Matrix Rain with speed/brightness controls</div>
+      <div class="cl-item"><span class="cl-tag tag-new">NEW</span> Control Center v2 — macOS-style floating panel, music controls, sliders, quick actions</div>
+      <div class="cl-item"><span class="cl-tag tag-new">NEW</span> Finder app with Virtual File System — upload, view, and manage files in browser storage</div>
+      <div class="cl-item"><span class="cl-tag tag-new">NEW</span> Lock Screen with live clock and date display</div>
+    </div>
+
+    <div class="changelog-entry reveal">
+      <div class="cl-version">TOB OS v13.0.0</div>
+      <div class="cl-item"><span class="cl-tag tag-new">NEW</span> TobTube — full folder-sync video platform replacing PetTube</div>
+      <div class="cl-item"><span class="cl-tag tag-new">NEW</span> Music Player redesigned with Artists / All Songs / Now Playing tabs</div>
+      <div class="cl-item"><span class="cl-tag tag-new">NEW</span> Task Manager — CPU, memory, process list with End Task buttons</div>
+      <div class="cl-item"><span class="cl-tag tag-fix">FIX</span> Calculator no longer auto-inserts numbers after pressing operator</div>
+    </div>
+
+    <div class="changelog-entry reveal">
+      <div class="cl-version">TOB OS v12.0.0</div>
+      <div class="cl-item"><span class="cl-tag tag-new">NEW</span> Built-in Calculator with keyboard support and proper state machine</div>
+      <div class="cl-item"><span class="cl-tag tag-new">NEW</span> Admin Panel — unlock with admin key, system stats, process list, system log</div>
+      <div class="cl-item"><span class="cl-tag tag-new">NEW</span> Mod Manager with tabs — System, Apps, Installed + JSON mod tutorial</div>
+      <div class="cl-item"><span class="cl-tag tag-new">NEW</span> Liquid Glass UI mod and Windows 11 Fluent UI mod</div>
+    </div>
+
+  </div><!-- /tab-changelog -->
+
+
+  <!-- ════════ ABOUT TAB ════════ -->
+  <div class="section-panel" id="tab-about">
+
+    <div class="section-header" style="margin-bottom:24px">
+      <div class="section-title">ABOUT</div>
+    </div>
+
+    <div class="about-grid">
+
+      <div class="about-card reveal">
+        <div class="about-card-title">◈ PROJECT STATS</div>
+        <div class="stat-row"><span class="stat-label">Primary Project</span><span class="stat-val">TOB OS</span></div>
+        <div class="stat-row"><span class="stat-label">Latest Version</span><span class="stat-val">v17.0.0</span></div>
+        <div class="stat-row"><span class="stat-label">Total Versions</span><span class="stat-val">8 builds</span></div>
+        <div class="stat-row"><span class="stat-label">Total Files</span><span class="stat-val">10 apps</span></div>
+        <div class="stat-row"><span class="stat-label">Tech Stack</span><span class="stat-val">HTML · CSS · JS</span></div>
+        <div class="stat-row"><span class="stat-label">Dependencies</span><span class="stat-val">Zero (CDN only)</span></div>
+        <div class="stat-row"><span class="stat-label">Platform</span><span class="stat-val">Browser · GitHub Pages</span></div>
+      </div>
+
+      <div class="about-card reveal">
+        <div class="about-card-title">◈ TECH SKILLS</div>
+        <div class="skill-row">
+          <div class="skill-name"><span>HTML / CSS</span><span style="color:var(--neon)">95%</span></div>
+          <div class="skill-bar"><div class="skill-fill" style="width:95%;--d:.1s"></div></div>
+        </div>
+        <div class="skill-row">
+          <div class="skill-name"><span>JavaScript</span><span style="color:var(--neon)">88%</span></div>
+          <div class="skill-bar"><div class="skill-fill" style="width:88%;--d:.2s"></div></div>
+        </div>
+        <div class="skill-row">
+          <div class="skill-name"><span>UI / UX Design</span><span style="color:var(--neon)">85%</span></div>
+          <div class="skill-bar"><div class="skill-fill" style="width:85%;--d:.3s"></div></div>
+        </div>
+        <div class="skill-row">
+          <div class="skill-name"><span>Animation / Canvas</span><span style="color:var(--neon)">80%</span></div>
+          <div class="skill-bar"><div class="skill-fill" style="width:80%;--d:.4s"></div></div>
+        </div>
+        <div class="skill-row">
+          <div class="skill-name"><span>Web APIs</span><span style="color:var(--neon)">75%</span></div>
+          <div class="skill-bar"><div class="skill-fill" style="width:75%;--d:.5s"></div></div>
+        </div>
+      </div>
+
+      <div class="about-card reveal" style="grid-column: span 2">
+        <div class="about-card-title">◈ ABOUT THIS PROJECT</div>
+        <div style="font-size:13px;color:var(--text-dim);line-height:1.9;max-width:700px">
+          TOB OS is a fully browser-based operating system built as a single HTML file — no downloads, no installs, 
+          no frameworks. It runs entirely in your browser using HTML, CSS, and vanilla JavaScript, 
+          with only fonts and Three.js loaded from CDN.
+          <br><br>
+          The project started as an experiment in how far a web UI could be pushed, and has since grown to include 
+          a real window manager, music player with folder access, video platform, mod system, app store with 15+ 
+          installable apps, themes, live wallpapers, user profiles, and more.
+          <br><br>
+          Every version is preserved here so you can see the evolution from the early builds all the way to the 
+          current Nexus Edition.
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /tab-about -->
+
+</main><!-- /main -->
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">◈ MR1CHARLES · PROJECT HUB</div>
+  <div class="footer-links">
+    <a class="footer-link" href="https://github.com/mr1charles" target="_blank">GitHub</a>
+    <a class="footer-link" href="TOBOS_v17_fixed__1_.html" target="_blank">Latest Build</a>
+  </div>
+  <div class="footer-ver">HUB v1.0 · BUILT FOR GITHUB PAGES</div>
+</footer>
+
+</div><!-- /#root -->
+
+<script>
+'use strict';
+
+/* ── BACKGROUND CANVAS ── */
+(function(){
+  const cv = document.getElementById('bg-canvas');
+  const ctx = cv.getContext('2d');
+  let W, H;
+  const resize = () => { W = cv.width = innerWidth; H = cv.height = innerHeight; };
+  resize(); addEventListener('resize', resize, { passive: true });
+
+  // Grid + orbs
+  const orbs = [
+    { x: .15, y: .3, r: 350, c: '0,40,160', a: .07 },
+    { x: .85, y: .7, r: 280, c: '0,150,120', a: .05 },
+    { x: .5,  y: .9, r: 320, c: '0,60,200', a: .04 },
+  ];
+  const particles = Array.from({ length: 55 }, () => ({
+    x: Math.random(), y: Math.random() + .5,
+    vx: (Math.random() - .5) * .00015, vy: -(Math.random() * .0002 + .00005),
+    r: Math.random() * 1.4 + .5, a: Math.random() * .3 + .05,
+    c: Math.random() < .7 ? '0,180,255' : '0,255,200',
+  }));
+
+  let t = 0;
+  (function loop() {
+    requestAnimationFrame(loop);
+    ctx.clearRect(0, 0, W, H);
+    t += .004;
+
+    // Orbs
+    orbs.forEach(o => {
+      const g = ctx.createRadialGradient(o.x*W, o.y*H, 0, o.x*W, o.y*H, o.r);
+      g.addColorStop(0, `rgba(${o.c},${o.a})`); g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    });
+
+    // Grid
+    const CELL = 44, al = .04;
+    ctx.strokeStyle = `rgba(0,180,255,${al})`; ctx.lineWidth = .7;
+    for (let x = 0; x < W; x += CELL) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+    for (let y = 0; y < H; y += CELL) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+
+    // Particles
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      if (p.y < -.01) { p.y = 1.05; p.x = Math.random(); }
+      if (p.x < 0) p.x = 1; if (p.x > 1) p.x = 0;
+      ctx.beginPath(); ctx.arc(p.x*W, p.y*H, p.r, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(${p.c},${p.a})`; ctx.fill();
+    });
+  })();
+})();
+
+
+/* ── TABS ── */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tab = btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+    document.querySelectorAll('.section-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tab));
+  });
+});
+
+
+/* ── TOAST ── */
+let _toastT;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(_toastT);
+  _toastT = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+/* Announce launches */
+document.querySelectorAll('a[target="_blank"]').forEach(a => {
+  a.addEventListener('click', () => {
+    const name = a.querySelector('.vc-name, .ac-name')?.textContent
+               || a.querySelector('.vc-ver')?.textContent
+               || 'App';
+    showToast('◈ Launching ' + name.trim() + ' …');
+  });
+});
+
+/* ── KEYBOARD SHORTCUT: press O to switch to OS tab ── */
+document.addEventListener('keydown', e => {
+  if (e.key === 'o' || e.key === 'O') {
+    document.querySelector('[data-tab="os"]').click();
+  }
+});
+</script>
+</body>
+</html>
