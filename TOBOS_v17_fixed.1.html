@@ -3,8 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TOB OS — v16.0 THEMES, GAMES &amp; RHYTHM EDITION</title>
+<title>TOB OS — v17.0 Shell Studio Edition</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&family=Manrope:wght@400..800&family=Outfit:wght@300..800&family=Poppins:wght@400;500;600;700&family=Space+Grotesk:wght@400..700&family=Ubuntu:wght@400;500;700&family=Doto:wght@600..900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script>/* TOB OS v17 — paint the chosen shell before first frame */(function(){try{var c=JSON.parse(localStorage.getItem('tob_shell_v1')||'null');var s=(c&&c.style)||'macos';var d=document.documentElement;d.setAttribute('data-shell',s);if(s!=='nexus'){d.setAttribute('data-sx-particles','0');d.setAttribute('data-sx-scan','0');d.setAttribute('data-sx-rings','0');}}catch(e){}})();</script>
 <style>
 /* ══════════════════════════════════════════════════════════════
    TOB OS v7.0 — NEXUS EDITION
@@ -1316,6 +1318,860 @@ html[data-theme-id="jjk"] #domain-hud{display:block;}
 .domain-circle{width:200px;height:200px;border-radius:50%;border:2px solid rgba(100,0,255,.4);position:absolute;animation:domainCircleIn .8s ease forwards;}
 @keyframes domainCircleIn{0%{transform:scale(0);opacity:0}100%{transform:scale(1);opacity:1}}
 </style>
+<style id="sx-styles">
+/* ══════════════════════════════════════════════════════════════════════
+   TOB OS v17 — SHELL ENGINE
+   One OS, many personalities. Every look is driven by design tokens:
+     html[data-shell]      → which OS personality (macos, ipados, hyperos …)
+     html[data-theme]      → light / dark
+     html[data-sx-*]       → per-user customization flags
+   Tokens are prefixed --sx-*; legacy tokens (--neon, --panel …) are
+   re-mapped onto them so older apps follow the active personality.
+══════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. BASE TOKENS (shared defaults, dark) ── */
+html{
+  --sx-accent:#0a84ff;--sx-accent-rgb:10,132,255;--sx-on-accent:#fff;
+  --sx-font:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Inter","Segoe UI Variable","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --sx-font-display:var(--sx-font);
+  --sx-radius:12px;--sx-radius-sm:8px;--sx-radius-lg:18px;--sx-radius-xl:26px;
+  --sx-blur:30px;--sx-sat:180%;--sx-alpha:.62;
+  --sx-text:rgba(255,255,255,.92);--sx-text-2:rgba(235,235,245,.62);--sx-text-3:rgba(235,235,245,.36);
+  --sx-surface:#1e1e22;--sx-win-bg:#1c1c1f;--sx-win-bar:#26262a;
+  --sx-card:rgba(255,255,255,.06);--sx-card-2:rgba(255,255,255,.1);--sx-card-hover:rgba(255,255,255,.12);
+  --sx-glass:rgba(34,34,38,var(--sx-alpha));--sx-glass-strong:rgba(30,30,34,.86);
+  --sx-hairline:rgba(255,255,255,.1);--sx-hairline-2:rgba(255,255,255,.16);
+  --sx-inner:inset 0 0 0 .5px rgba(255,255,255,.14);
+  --sx-shadow:0 22px 70px rgba(0,0,0,.48),0 6px 18px rgba(0,0,0,.28);
+  --sx-shadow-soft:0 10px 34px rgba(0,0,0,.32);
+  --sx-shadow-k:1;
+  --sx-bar-bg:rgba(20,20,24,.34);--sx-bar-text:rgba(255,255,255,.92);
+  --sx-dock-bg:rgba(40,40,46,.42);--sx-dock-border:rgba(255,255,255,.16);
+  --sx-danger:#ff453a;--sx-ok:#30d158;--sx-warn:#ffd60a;
+  --sx-icon:56px;--sx-dock:54px;--sx-speed:1;
+  --sx-ease:cubic-bezier(.2,.8,.2,1);--sx-spring:cubic-bezier(.34,1.36,.64,1);
+  --sx-left:0px;--sx-right:0px;
+}
+html[data-theme="light"]{
+  --sx-text:rgba(0,0,0,.88);--sx-text-2:rgba(60,60,67,.66);--sx-text-3:rgba(60,60,67,.38);
+  --sx-surface:#f5f5f7;--sx-win-bg:#ffffff;--sx-win-bar:#f3f3f5;
+  --sx-card:rgba(0,0,0,.045);--sx-card-2:rgba(0,0,0,.07);--sx-card-hover:rgba(0,0,0,.08);
+  --sx-glass:rgba(246,246,248,var(--sx-alpha));--sx-glass-strong:rgba(250,250,252,.9);
+  --sx-hairline:rgba(0,0,0,.1);--sx-hairline-2:rgba(0,0,0,.14);
+  --sx-inner:inset 0 0 0 .5px rgba(255,255,255,.7);
+  --sx-shadow:0 22px 60px rgba(0,0,0,.22),0 4px 14px rgba(0,0,0,.1);
+  --sx-shadow-soft:0 10px 30px rgba(0,0,0,.14);
+  --sx-bar-bg:rgba(255,255,255,.38);--sx-bar-text:rgba(0,0,0,.86);
+  --sx-dock-bg:rgba(255,255,255,.4);--sx-dock-border:rgba(255,255,255,.55);
+}
+
+/* ── 2. PERSONALITIES ── */
+/* macOS — translucent, restrained, unified toolbars */
+html[data-shell="macos"]{--sx-radius:12px;--sx-radius-lg:14px;--sx-radius-xl:22px;--sx-blur:40px;}
+/* iPadOS — big friendly corners, floating everything */
+html[data-shell="ipados"]{--sx-radius:22px;--sx-radius-lg:22px;--sx-radius-xl:30px;--sx-blur:44px;--sx-icon:68px;--sx-dock:62px;}
+/* HyperOS — soft, airy, very round */
+html[data-shell="hyperos"]{
+  --sx-font:"MiSans","Inter",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --sx-radius:24px;--sx-radius-lg:24px;--sx-radius-xl:32px;--sx-icon:62px;--sx-dock:58px;
+  --sx-surface:#15171b;--sx-win-bg:#121418;--sx-win-bar:#121418;--sx-glass:rgba(24,26,32,var(--sx-alpha));
+}
+html[data-shell="hyperos"][data-theme="light"]{--sx-surface:#f4f6fa;--sx-win-bg:#f7f8fb;--sx-win-bar:#f7f8fb;--sx-card:rgba(0,0,0,.035);--sx-glass:rgba(245,247,251,var(--sx-alpha));}
+/* HarmonyOS — clean geometry, deep blue calm */
+html[data-shell="harmonyos"]{
+  --sx-font:"HarmonyOS Sans","HarmonyOS Sans SC","Inter",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --sx-radius:20px;--sx-radius-lg:22px;--sx-radius-xl:28px;--sx-icon:60px;--sx-dock:58px;
+  --sx-surface:#10141d;--sx-win-bg:#0e121a;--sx-win-bar:#0e121a;--sx-glass:rgba(18,24,36,var(--sx-alpha));
+}
+html[data-shell="harmonyos"][data-theme="light"]{--sx-surface:#f1f3f5;--sx-win-bg:#f7f8fa;--sx-win-bar:#f7f8fa;--sx-glass:rgba(241,243,245,var(--sx-alpha));}
+/* Windows 11 — Mica, crisp 8px geometry */
+html[data-shell="windows11"]{
+  --sx-font:"Segoe UI Variable Text","Segoe UI Variable","Segoe UI","Inter",-apple-system,Roboto,sans-serif;
+  --sx-radius:8px;--sx-radius-sm:4px;--sx-radius-lg:8px;--sx-radius-xl:12px;--sx-icon:46px;--sx-dock:40px;
+  --sx-surface:#202020;--sx-win-bg:#1c1c1c;--sx-win-bar:#202020;--sx-glass:rgba(32,32,32,var(--sx-alpha));--sx-glass-strong:rgba(36,36,36,.94);
+  --sx-dock-bg:rgba(28,28,28,.78);--sx-dock-border:rgba(255,255,255,.08);
+}
+html[data-shell="windows11"][data-theme="light"]{--sx-glass-strong:rgba(243,243,243,.94);--sx-surface:#f3f3f3;--sx-win-bg:#fafafa;--sx-win-bar:#f3f3f3;--sx-glass:rgba(243,243,243,var(--sx-alpha));--sx-dock-bg:rgba(238,238,238,.8);--sx-dock-border:rgba(0,0,0,.06);}
+/* One UI — content low, big headers, bold round cards */
+html[data-shell="oneui"]{
+  --sx-font:"SamsungOne","Inter",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --sx-radius:26px;--sx-radius-lg:26px;--sx-radius-xl:32px;--sx-icon:62px;--sx-dock:58px;
+  --sx-surface:#101010;--sx-win-bg:#000;--sx-win-bar:#000;--sx-card:rgba(255,255,255,.08);--sx-glass:rgba(22,22,22,var(--sx-alpha));
+}
+html[data-shell="oneui"][data-theme="light"]{--sx-surface:#f6f6f6;--sx-win-bg:#f6f6f6;--sx-win-bar:#f6f6f6;--sx-card:#fff;--sx-glass:rgba(246,246,246,var(--sx-alpha));}
+/* visionOS — pure glass, floating, spatial */
+html[data-shell="visionos"]{
+  --sx-radius:28px;--sx-radius-lg:26px;--sx-radius-xl:34px;--sx-blur:56px;--sx-icon:66px;--sx-dock:56px;
+  --sx-win-bg:rgba(62,62,72,.42);--sx-win-bar:transparent;--sx-surface:rgba(58,58,68,.4);
+  --sx-card:rgba(255,255,255,.1);--sx-card-2:rgba(255,255,255,.16);--sx-glass:rgba(90,90,100,.3);
+  --sx-hairline:rgba(255,255,255,.18);--sx-dock-bg:rgba(120,120,130,.28);
+}
+html[data-shell="visionos"][data-theme="light"]{--sx-win-bg:rgba(255,255,255,.5);--sx-surface:rgba(255,255,255,.6);--sx-card:rgba(255,255,255,.4);--sx-glass:rgba(255,255,255,.44);}
+/* Ubuntu / GNOME */
+html[data-shell="ubuntu"]{
+  --sx-font:"Ubuntu","Cantarell","Inter",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --sx-radius:12px;--sx-radius-lg:12px;--sx-radius-xl:18px;--sx-icon:52px;--sx-dock:48px;
+  --sx-surface:#242424;--sx-win-bg:#1e1e1e;--sx-win-bar:#303030;--sx-glass:rgba(36,36,36,var(--sx-alpha));
+  --sx-bar-bg:#000;--sx-dock-bg:rgba(20,20,20,.72);
+}
+html[data-shell="ubuntu"][data-theme="light"]{--sx-surface:#fafafa;--sx-win-bg:#fafafa;--sx-win-bar:#ebebeb;--sx-glass:rgba(250,250,250,var(--sx-alpha));--sx-bar-bg:#000;--sx-bar-text:#fff;--sx-dock-bg:rgba(30,30,30,.55);}
+/* Nothing OS — monochrome, dot-matrix, one red accent */
+html[data-shell="nothing"]{
+  --sx-font:"Space Grotesk","Inter",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --sx-font-display:"Doto","Space Mono","Space Grotesk",monospace;
+  --sx-radius:18px;--sx-radius-lg:20px;--sx-radius-xl:26px;--sx-icon:58px;--sx-dock:54px;
+  --sx-surface:#0b0b0b;--sx-win-bg:#000;--sx-win-bar:#000;--sx-card:#141414;--sx-card-2:#1d1d1d;--sx-glass:rgba(10,10,10,var(--sx-alpha));
+  --sx-hairline:rgba(255,255,255,.12);--sx-dock-bg:rgba(20,20,20,.7);
+}
+html[data-shell="nothing"][data-theme="light"]{--sx-surface:#f0f0f0;--sx-win-bg:#fff;--sx-win-bar:#fff;--sx-card:#f2f2f2;--sx-card-2:#e8e8e8;--sx-glass:rgba(242,242,242,var(--sx-alpha));--sx-dock-bg:rgba(255,255,255,.72);}
+/* TOB Nexus (original) — keep the neon DNA, just calmer surfaces for new UI */
+html[data-shell="nexus"]{
+  --sx-font:'Rajdhani',-apple-system,"Segoe UI",sans-serif;--sx-font-display:'Orbitron',sans-serif;
+  --sx-surface:#03111e;--sx-win-bg:#020b18;--sx-win-bar:rgba(3,14,30,.98);--sx-card:rgba(0,180,255,.06);--sx-card-2:rgba(0,180,255,.1);
+  --sx-glass:rgba(2,10,26,.88);--sx-glass-strong:rgba(2,10,26,.95);--sx-hairline:rgba(0,180,255,.2);--sx-hairline-2:rgba(0,180,255,.35);
+  --sx-text:#c8e8ff;--sx-text-2:rgba(150,200,240,.62);--sx-text-3:rgba(100,160,210,.4);
+}
+html[data-shell="nexus"][data-theme="light"]{--sx-surface:#cce4f8;--sx-win-bg:#daeeff;--sx-glass:rgba(210,235,255,.92);--sx-text:#002244;--sx-text-2:rgba(0,60,140,.66);--sx-text-3:rgba(0,40,100,.4);--sx-card:rgba(0,100,200,.07);}
+
+/* user overrides (set inline by JS as --sx-u-*) win over personality defaults */
+html[data-sx-radius]{--sx-radius:var(--sx-u-radius);}
+html[data-sx-font]{--sx-font:var(--sx-u-font);}
+html[data-sx-transp="0"]{--sx-alpha:.97;--sx-blur:0px;}
+html[data-sx-tint="1"]{--sx-win-bg:color-mix(in srgb,var(--sx-accent) 7%,var(--sx-surface));--sx-win-bar:color-mix(in srgb,var(--sx-accent) 9%,var(--sx-surface));}
+
+/* ── 3. LEGACY TOKEN BRIDGE (non-nexus) ── */
+html[data-shell]:not([data-shell="nexus"]){
+  --bg:var(--sx-win-bg);--bg2:var(--sx-surface);--panel:var(--sx-card);--panel-solid:var(--sx-surface);
+  --panel-border:var(--sx-hairline);--win-bar:var(--sx-win-bar);--taskbar:var(--sx-dock-bg);
+  --neon:var(--sx-accent);--neon2:var(--sx-accent);--neon3:var(--sx-accent);
+  --text:var(--sx-text);--text-dim:var(--sx-text-2);--text-muted:var(--sx-text-3);
+  --glow-lg:var(--sx-shadow-soft);--glow-sm:0 0 0 transparent;--glow-xs:0 0 0 transparent;
+  --radius:var(--sx-radius);--tr:calc(.22s * var(--sx-speed)) var(--sx-ease);
+}
+html[data-shell]:not([data-shell="nexus"]) body{font-family:var(--sx-font);background:#000;-webkit-font-smoothing:antialiased;}
+html[data-sx-unify="1"] body :is(div,span,button,input,select,label,a,p,h1,h2,h3,h4,li,strong,b,small,em,option,td,th){font-family:var(--sx-font)!important;}
+html[data-sx-unify="1"] :is(.os-window,#sx-root,.modal-dialog,#widget-panel,#start-menu) :is(div,span,button,input,label,p,strong,b){letter-spacing:normal!important;}
+html[data-sx-unify="1"] :is(textarea,code,pre,.sx-mono,.sx-mono *){font-family:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace!important;}
+
+/* ── 4. HIDE NEON CHROME OUTSIDE NEXUS (each can be re-enabled) ── */
+html[data-shell]:not([data-shell="nexus"]) #statusbar,
+html[data-shell]:not([data-shell="nexus"]) #taskbar,
+html[data-shell]:not([data-shell="nexus"]) #start-menu,
+html[data-shell]:not([data-shell="nexus"]) #cc-swipe-zone,
+html[data-shell]:not([data-shell="nexus"]) #edge-swipe-indicator,
+html[data-shell]:not([data-shell="nexus"]) .home-watermark{display:none!important;}
+html[data-sx-particles="0"] #particle-canvas,
+html[data-sx-scan="0"] #scanlines,
+html[data-sx-rings="0"] .amb-ring{display:none!important;}
+html[data-sx-icons="0"] #icon-grid{opacity:0;pointer-events:none;}
+html[data-shell]:not([data-shell="nexus"]) #desktop,
+html[data-shell]:not([data-shell="nexus"]) #dw-layer{left:var(--sx-left);right:var(--sx-right);}
+
+/* ── 5. WALLPAPERS (pure CSS mesh gradients, light + dark) ── */
+#bg-layer{transition:background .6s var(--sx-ease),filter .4s;}
+#bg-layer[class*="wp-sx-"]{background-size:cover!important;}
+:is(#bg-layer,.sx-wpsw).wp-sx-sequoia{background:
+  radial-gradient(120% 80% at 0% 100%,#ff7a3d 0%,rgba(255,122,61,0) 48%),
+  radial-gradient(90% 70% at 100% 100%,#c2186b 0%,rgba(194,24,107,0) 52%),
+  radial-gradient(80% 70% at 75% 0%,#3437a8 0%,rgba(52,55,168,0) 62%),
+  radial-gradient(70% 60% at 20% 10%,#1b1e5e 0%,rgba(27,30,94,0) 70%),
+  linear-gradient(165deg,#0c0f2b 0%,#291352 52%,#4b1642 100%);}
+html[data-theme="light"] :is(#bg-layer,.sx-wpsw).wp-sx-sequoia{background:
+  radial-gradient(120% 80% at 0% 100%,#ffb36b 0%,rgba(255,179,107,0) 50%),
+  radial-gradient(90% 70% at 100% 100%,#ff6fa8 0%,rgba(255,111,168,0) 55%),
+  radial-gradient(80% 70% at 75% 0%,#7aa2ff 0%,rgba(122,162,255,0) 62%),
+  linear-gradient(165deg,#c9d6ff 0%,#e8c5f0 55%,#ffd1c1 100%);}
+:is(#bg-layer,.sx-wpsw).wp-sx-ipad{background:
+  radial-gradient(60% 60% at 15% 20%,#ff9f0a 0%,rgba(255,159,10,0) 60%),
+  radial-gradient(55% 55% at 85% 25%,#ff375f 0%,rgba(255,55,95,0) 60%),
+  radial-gradient(70% 70% at 30% 90%,#5e5ce6 0%,rgba(94,92,230,0) 62%),
+  radial-gradient(60% 60% at 90% 90%,#40c8e0 0%,rgba(64,200,224,0) 60%),
+  #1a1030;}
+html[data-theme="light"] :is(#bg-layer,.sx-wpsw).wp-sx-ipad{background:
+  radial-gradient(60% 60% at 15% 20%,#ffcc80 0%,rgba(255,204,128,0) 62%),
+  radial-gradient(55% 55% at 85% 25%,#ff9ab0 0%,rgba(255,154,176,0) 62%),
+  radial-gradient(70% 70% at 30% 90%,#a7a6ff 0%,rgba(167,166,255,0) 62%),
+  radial-gradient(60% 60% at 90% 90%,#9ae6f2 0%,rgba(154,230,242,0) 60%),
+  #f4ecff;}
+:is(#bg-layer,.sx-wpsw).wp-sx-hyper{background:
+  radial-gradient(70% 60% at 10% 10%,#2d5bd8 0%,rgba(45,91,216,0) 60%),
+  radial-gradient(60% 60% at 90% 20%,#0f8f8a 0%,rgba(15,143,138,0) 60%),
+  radial-gradient(80% 70% at 60% 100%,#6a3fb5 0%,rgba(106,63,181,0) 62%),
+  #0b1020;}
+html[data-theme="light"] :is(#bg-layer,.sx-wpsw).wp-sx-hyper{background:
+  radial-gradient(70% 60% at 10% 10%,#a1c4fd 0%,rgba(161,196,253,0) 62%),
+  radial-gradient(60% 60% at 90% 20%,#b5f1e3 0%,rgba(181,241,227,0) 62%),
+  radial-gradient(80% 70% at 60% 100%,#fbc2eb 0%,rgba(251,194,235,0) 64%),
+  radial-gradient(50% 50% at 20% 90%,#ffe29f 0%,rgba(255,226,159,0) 60%),
+  #eef2fb;}
+:is(#bg-layer,.sx-wpsw).wp-sx-harmony{background:
+  radial-gradient(90% 60% at 50% 110%,#0a59f7 0%,rgba(10,89,247,0) 60%),
+  radial-gradient(70% 50% at 0% 40%,#5b3fd6 0%,rgba(91,63,214,0) 60%),
+  radial-gradient(60% 50% at 100% 30%,#00a2ff 0%,rgba(0,162,255,0) 58%),
+  linear-gradient(180deg,#040a1c 0%,#071637 100%);}
+html[data-theme="light"] :is(#bg-layer,.sx-wpsw).wp-sx-harmony{background:
+  radial-gradient(90% 60% at 50% 110%,#6fa1ff 0%,rgba(111,161,255,0) 62%),
+  radial-gradient(70% 50% at 0% 40%,#c5b8ff 0%,rgba(197,184,255,0) 60%),
+  radial-gradient(60% 50% at 100% 30%,#9fe0ff 0%,rgba(159,224,255,0) 58%),
+  linear-gradient(180deg,#f3f7ff 0%,#dfe9ff 100%);}
+:is(#bg-layer,.sx-wpsw).wp-sx-bloom{background:
+  radial-gradient(38% 46% at 50% 58%,rgba(120,170,255,.85) 0%,rgba(120,170,255,0) 70%),
+  conic-gradient(from 210deg at 50% 62%,rgba(80,120,255,0) 0deg,rgba(84,120,255,.55) 40deg,rgba(150,110,255,.5) 90deg,rgba(80,120,255,0) 140deg,rgba(0,0,0,0) 220deg,rgba(60,140,255,.45) 290deg,rgba(80,120,255,0) 360deg),
+  radial-gradient(90% 90% at 50% 60%,#0f2a5c 0%,#07122a 60%,#040914 100%);}
+html[data-theme="light"] :is(#bg-layer,.sx-wpsw).wp-sx-bloom{background:
+  radial-gradient(38% 46% at 50% 58%,rgba(90,150,255,.8) 0%,rgba(90,150,255,0) 70%),
+  conic-gradient(from 210deg at 50% 62%,rgba(80,120,255,0) 0deg,rgba(84,140,255,.5) 40deg,rgba(160,130,255,.45) 90deg,rgba(80,120,255,0) 140deg,rgba(0,0,0,0) 220deg,rgba(90,160,255,.4) 290deg,rgba(80,120,255,0) 360deg),
+  radial-gradient(90% 90% at 50% 60%,#dfe9ff 0%,#c9d9f7 60%,#b7c9ee 100%);}
+:is(#bg-layer,.sx-wpsw).wp-sx-oneui{background:
+  radial-gradient(80% 60% at 20% 0%,#3e5cff 0%,rgba(62,92,255,0) 60%),
+  radial-gradient(70% 70% at 100% 70%,#a23cff 0%,rgba(162,60,255,0) 58%),
+  radial-gradient(60% 60% at 0% 100%,#00c2c7 0%,rgba(0,194,199,0) 58%),#0a0a18;}
+html[data-theme="light"] :is(#bg-layer,.sx-wpsw).wp-sx-oneui{background:
+  radial-gradient(80% 60% at 20% 0%,#9fb0ff 0%,rgba(159,176,255,0) 62%),
+  radial-gradient(70% 70% at 100% 70%,#dcb2ff 0%,rgba(220,178,255,0) 60%),
+  radial-gradient(60% 60% at 0% 100%,#99f0f0 0%,rgba(153,240,240,0) 60%),#f3f1ff;}
+:is(#bg-layer,.sx-wpsw).wp-sx-vision{background:
+  radial-gradient(60% 40% at 50% 100%,rgba(255,196,140,.35) 0%,rgba(255,196,140,0) 70%),
+  radial-gradient(40% 40% at 80% 20%,rgba(255,230,190,.3) 0%,rgba(255,230,190,0) 70%),
+  linear-gradient(180deg,#3b3129 0%,#6d5745 45%,#a88867 75%,#4a3b30 100%);}
+html[data-theme="light"] :is(#bg-layer,.sx-wpsw).wp-sx-vision{background:
+  radial-gradient(60% 40% at 50% 100%,rgba(255,220,180,.6) 0%,rgba(255,220,180,0) 70%),
+  linear-gradient(180deg,#b9d3e8 0%,#dfe8ef 45%,#efe2d0 75%,#cdb89c 100%);}
+:is(#bg-layer,.sx-wpsw).wp-sx-ubuntu{background:
+  radial-gradient(70% 70% at 100% 100%,#e95420 0%,rgba(233,84,32,0) 55%),
+  radial-gradient(70% 70% at 0% 0%,#77216f 0%,rgba(119,33,111,0) 60%),
+  linear-gradient(135deg,#2c001e 0%,#4a0f3e 50%,#2c001e 100%);}
+html[data-theme="light"] :is(#bg-layer,.sx-wpsw).wp-sx-ubuntu{background:
+  radial-gradient(70% 70% at 100% 100%,#ff9a6b 0%,rgba(255,154,107,0) 55%),
+  radial-gradient(70% 70% at 0% 0%,#c476bb 0%,rgba(196,118,187,0) 60%),
+  linear-gradient(135deg,#f6e3f0 0%,#fbe3d9 100%);}
+:is(#bg-layer,.sx-wpsw).wp-sx-nothing{background:radial-gradient(circle,rgba(255,255,255,.14) 1px,transparent 1.5px) 0 0/16px 16px,radial-gradient(60% 50% at 80% 10%,rgba(215,25,33,.14) 0%,rgba(215,25,33,0) 70%),#000;}
+html[data-theme="light"] :is(#bg-layer,.sx-wpsw).wp-sx-nothing{background:radial-gradient(circle,rgba(0,0,0,.16) 1px,transparent 1.5px) 0 0/16px 16px,#f2f2f2;}
+:is(#bg-layer,.sx-wpsw).wp-sx-graphite{background:radial-gradient(80% 80% at 30% 20%,#3a3d44 0%,rgba(58,61,68,0) 60%),radial-gradient(80% 80% at 80% 90%,#2a2c31 0%,rgba(42,44,49,0) 60%),#141518;}
+html[data-theme="light"] :is(#bg-layer,.sx-wpsw).wp-sx-graphite{background:radial-gradient(80% 80% at 30% 20%,#ffffff 0%,rgba(255,255,255,0) 60%),radial-gradient(80% 80% at 80% 90%,#d6d8dd 0%,rgba(214,216,221,0) 60%),#e7e8eb;}
+:is(#bg-layer,.sx-wpsw).wp-sx-aurora{background:
+  radial-gradient(50% 80% at 20% 0%,rgba(0,255,170,.45) 0%,rgba(0,255,170,0) 60%),
+  radial-gradient(40% 70% at 60% 0%,rgba(0,170,255,.4) 0%,rgba(0,170,255,0) 60%),
+  radial-gradient(40% 60% at 90% 10%,rgba(170,80,255,.4) 0%,rgba(170,80,255,0) 60%),
+  linear-gradient(180deg,#02101a 0%,#030814 100%);}
+html[data-theme="light"] :is(#bg-layer,.sx-wpsw).wp-sx-aurora{background:
+  radial-gradient(50% 80% at 20% 0%,rgba(0,220,160,.4) 0%,rgba(0,220,160,0) 60%),
+  radial-gradient(40% 70% at 60% 0%,rgba(0,150,255,.35) 0%,rgba(0,150,255,0) 60%),
+  radial-gradient(40% 60% at 90% 10%,rgba(170,80,255,.3) 0%,rgba(170,80,255,0) 60%),#eef4f8;}
+:is(#bg-layer,.sx-wpsw).wp-sx-dune{background:
+  radial-gradient(120% 60% at 30% 110%,#c26a3a 0%,rgba(194,106,58,0) 60%),
+  radial-gradient(100% 50% at 90% 80%,#8a3e2a 0%,rgba(138,62,42,0) 60%),
+  linear-gradient(180deg,#1b1a2e 0%,#4b2a3a 50%,#8c4a33 100%);}
+html[data-theme="light"] :is(#bg-layer,.sx-wpsw).wp-sx-dune{background:
+  radial-gradient(120% 60% at 30% 110%,#f0b27a 0%,rgba(240,178,122,0) 60%),
+  radial-gradient(100% 50% at 90% 80%,#e59b7b 0%,rgba(229,155,123,0) 60%),
+  linear-gradient(180deg,#d9e4f5 0%,#f2d3c3 55%,#edb58c 100%);}
+#sx-wp-dim{position:fixed;inset:0;z-index:3;pointer-events:none;background:#000;opacity:0;transition:opacity .4s;}
+#sx-bright{position:fixed;inset:0;z-index:99990;pointer-events:none;background:#000;opacity:0;transition:opacity .2s;}
+
+/* ── 6. TOP BARS ── */
+#sx-bar{position:fixed;top:0;left:0;right:0;height:var(--sb-h);z-index:300;display:none;align-items:center;gap:4px;padding:0 10px;
+  color:var(--sx-bar-text);font:500 13px/1 var(--sx-font);background:var(--sx-bar-bg);
+  backdrop-filter:blur(var(--sx-blur)) saturate(var(--sx-sat));-webkit-backdrop-filter:blur(var(--sx-blur)) saturate(var(--sx-sat));user-select:none;}
+html[data-sx-bar="mac"] #sx-bar,html[data-sx-bar="mobile"] #sx-bar,html[data-sx-bar="gnome"] #sx-bar{display:flex;}
+.sx-bar-group{display:flex;align-items:center;gap:2px;height:100%;}
+.sx-bar-spacer{flex:1;}
+.sx-bi{height:calc(100% - 6px);display:flex;align-items:center;gap:6px;padding:0 9px;border-radius:6px;cursor:default;white-space:nowrap;transition:background .12s;}
+.sx-bi:hover,.sx-bi.open{background:rgba(127,127,127,.22);}
+.sx-bi svg{width:16px;height:16px;display:block;}
+.sx-bi.logo{font-size:15px;padding:0 10px;}
+.sx-bi.appname{font-weight:700;}
+.sx-bi.clock{font-variant-numeric:tabular-nums;}
+.sx-bat{display:flex;align-items:center;gap:5px;font-size:12px;}
+.sx-bat-shell{width:24px;height:12px;border-radius:3.5px;border:1.2px solid currentColor;opacity:.9;padding:1.2px;position:relative;}
+.sx-bat-shell::after{content:"";position:absolute;right:-3.5px;top:3.2px;width:2px;height:4px;border-radius:0 1px 1px 0;background:currentColor;}
+.sx-bat-fill{height:100%;border-radius:1.5px;background:currentColor;}
+.sx-bat.low .sx-bat-fill{background:var(--sx-danger);}
+/* mobile personality */
+html[data-sx-bar="mobile"] #sx-bar{background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none;padding:0 18px;font-weight:600;font-size:13.5px;text-shadow:0 1px 6px rgba(0,0,0,.18);}
+html[data-sx-bar="mobile"] .sx-bi:hover{background:transparent;opacity:.75;}
+html[data-sx-bar="mobile"] .sx-bar-group.right{gap:0;}
+html[data-sx-bar="mobile"] .sx-bar-group.right .sx-bi{padding:0 5px;}
+html[data-shell="nothing"] #sx-bar .clock{font-family:var(--sx-font-display)!important;font-size:15px;font-weight:700;letter-spacing:1px;}
+/* gnome personality */
+html[data-sx-bar="gnome"] #sx-bar{background:#000;color:#fff;backdrop-filter:none;font-weight:600;}
+html[data-sx-bar="gnome"] .sx-bi{border-radius:99px;padding:0 12px;}
+html[data-sx-bar="gnome"] .sx-bi.center{position:absolute;left:50%;transform:translateX(-50%);}
+.sx-activities{display:flex;gap:4px;align-items:center;}
+.sx-activities i{display:block;height:7px;border-radius:9px;background:#fff;width:7px;opacity:.55;}
+.sx-activities i:first-child{width:22px;opacity:1;}
+/* status icons */
+.sx-ico{width:17px;height:17px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.sx-ico.fill{fill:currentColor;stroke:none;}
+
+/* dropdown menus (menubar, context menus) */
+.sx-menu{position:fixed;z-index:9700;min-width:230px;padding:5px;border-radius:calc(var(--sx-radius-sm) + 3px);
+  background:var(--sx-glass-strong);backdrop-filter:blur(var(--sx-blur)) saturate(var(--sx-sat));-webkit-backdrop-filter:blur(var(--sx-blur)) saturate(var(--sx-sat));
+  box-shadow:var(--sx-shadow),0 0 0 .5px var(--sx-hairline-2);color:var(--sx-text);font:400 13px/1.2 var(--sx-font);
+  animation:sxMenuIn calc(.14s * var(--sx-speed)) var(--sx-ease);transform-origin:top left;}
+@keyframes sxMenuIn{from{opacity:0;transform:scale(.97) translateY(-3px)}to{opacity:1;transform:none}}
+.sx-mi{display:flex;align-items:center;gap:10px;padding:5px 10px;border-radius:5px;cursor:default;white-space:nowrap;}
+.sx-mi:hover{background:var(--sx-accent);color:var(--sx-on-accent);}
+.sx-mi:hover .sx-kbd,.sx-mi:hover .sx-mi-ico{color:inherit;opacity:.9;}
+.sx-mi.disabled{opacity:.38;pointer-events:none;}
+.sx-mi-ico{width:18px;text-align:center;font-size:13px;}
+.sx-kbd{margin-left:auto;padding-left:24px;color:var(--sx-text-3);font-size:12px;}
+.sx-msep{height:1px;margin:5px 8px;background:var(--sx-hairline);}
+.sx-mlabel{padding:6px 10px 3px;font-size:11px;font-weight:600;color:var(--sx-text-3);}
+.sx-mi.check::before{content:"✓";width:12px;margin-left:-2px;}
+.sx-mi.nocheck::before{content:"";width:12px;margin-left:-2px;}
+
+/* ── 7. DOCK / TASKBAR ── */
+#sx-dock{position:fixed;z-index:250;display:none;user-select:none;}
+html[data-sx-dock] #sx-dock{display:flex;}
+.sx-dock-inner{display:flex;align-items:flex-end;gap:calc(var(--sx-dock) * .12);padding:calc(var(--sx-dock) * .13);
+  background:var(--sx-dock-bg);border-radius:calc(var(--sx-dock) * .42);
+  backdrop-filter:blur(var(--sx-blur)) saturate(var(--sx-sat));-webkit-backdrop-filter:blur(var(--sx-blur)) saturate(var(--sx-sat));
+  box-shadow:0 0 0 .5px var(--sx-dock-border),inset 0 .5px 0 rgba(255,255,255,.18),0 18px 50px rgba(0,0,0,.28);
+  transition:transform calc(.35s * var(--sx-speed)) var(--sx-ease),opacity .3s;}
+html[data-sx-dock="dock"] #sx-dock{left:50%;bottom:8px;transform:translateX(-50%);}
+html[data-sx-dock="dock"][data-sx-dockpos="left"] #sx-dock{left:8px;top:50%;bottom:auto;transform:translateY(-50%);}
+html[data-sx-dock="dock"][data-sx-dockpos="right"] #sx-dock{right:8px;left:auto;top:50%;bottom:auto;transform:translateY(-50%);}
+html[data-sx-dock="dock"]:is([data-sx-dockpos="left"],[data-sx-dockpos="right"]) .sx-dock-inner{flex-direction:column;align-items:center;}
+html[data-sx-dock="dock"]:is([data-sx-dockpos="left"],[data-sx-dockpos="right"]) .sx-dsep{width:70%;height:1px;margin:2px 0;}
+.sx-ditem{position:relative;width:calc(var(--sx-dock) * var(--s,1));height:calc(var(--sx-dock) * var(--s,1));flex-shrink:0;
+  transition:width calc(.16s * var(--sx-speed)) var(--sx-ease),height calc(.16s * var(--sx-speed)) var(--sx-ease),transform .2s;cursor:pointer;}
+.sx-ditem .sx-tile{width:100%;height:100%;font-size:calc(var(--sx-dock) * var(--s,1) * .52);}
+.sx-ditem:active .sx-tile{filter:brightness(.8);}
+.sx-ditem.bounce{animation:sxBounce .7s var(--sx-ease);}
+@keyframes sxBounce{0%,100%{transform:translateY(0)}30%{transform:translateY(-38%)}55%{transform:translateY(0)}72%{transform:translateY(-12%)}}
+.sx-ddot{position:absolute;left:50%;bottom:calc(var(--sx-dock) * -.1);width:4px;height:4px;border-radius:50%;background:var(--sx-text);opacity:0;transform:translateX(-50%);transition:opacity .2s;}
+.sx-ditem.running .sx-ddot{opacity:.75;}
+html:is([data-sx-dockpos="left"]) .sx-ddot{left:calc(var(--sx-dock) * -.1);top:50%;bottom:auto;transform:translateY(-50%);}
+html:is([data-sx-dockpos="right"]) .sx-ddot{left:auto;right:calc(var(--sx-dock) * -.1);top:50%;bottom:auto;transform:translateY(-50%);}
+.sx-dsep{width:1px;align-self:stretch;margin:4px 2px;background:var(--sx-hairline-2);}
+.sx-dtip{position:absolute;bottom:calc(100% + 12px);left:50%;transform:translateX(-50%);padding:5px 11px;border-radius:7px;white-space:nowrap;
+  background:var(--sx-glass-strong);color:var(--sx-text);font:500 12.5px var(--sx-font);box-shadow:var(--sx-shadow-soft),0 0 0 .5px var(--sx-hairline-2);
+  opacity:0;pointer-events:none;transition:opacity .12s;backdrop-filter:blur(20px);}
+.sx-ditem:hover .sx-dtip{opacity:1;}
+html[data-sx-dockpos="left"] .sx-dtip{left:calc(100% + 14px);bottom:auto;top:50%;transform:translateY(-50%);}
+html[data-sx-dockpos="right"] .sx-dtip{right:calc(100% + 14px);left:auto;bottom:auto;top:50%;transform:translateY(-50%);}
+html[data-sx-dockhide="1"] #sx-dock.sx-hidden .sx-dock-inner{transform:translateY(140%);opacity:0;}
+html[data-sx-dockhide="1"][data-sx-dockpos="left"] #sx-dock.sx-hidden .sx-dock-inner{transform:translateX(-140%);}
+html[data-sx-dockhide="1"][data-sx-dockpos="right"] #sx-dock.sx-hidden .sx-dock-inner{transform:translateX(140%);}
+#sx-dock-reveal{position:fixed;left:0;right:0;bottom:0;height:6px;z-index:249;display:none;}
+html[data-sx-dockhide="1"] #sx-dock-reveal{display:block;}
+html[data-sx-dockpos="left"] #sx-dock-reveal{top:0;right:auto;width:6px;height:auto;}
+html[data-sx-dockpos="right"] #sx-dock-reveal{top:0;left:auto;width:6px;height:auto;}
+/* iPadOS / mobile flavours: bigger radius, no tooltips */
+html[data-shell="ipados"] .sx-dock-inner,html[data-shell="visionos"] .sx-dock-inner{border-radius:calc(var(--sx-dock) * .5);}
+html[data-shell="hyperos"] .sx-dock-inner,html[data-shell="oneui"] .sx-dock-inner,html[data-shell="harmonyos"] .sx-dock-inner{border-radius:calc(var(--sx-dock) * .56);padding:calc(var(--sx-dock) * .18) calc(var(--sx-dock) * .26);gap:calc(var(--sx-dock) * .3);}
+/* GNOME/Ubuntu side dash */
+html[data-sx-dock="side"] #sx-dock{left:0;top:var(--sb-h);bottom:0;width:calc(var(--sx-dock) + 18px);}
+html[data-sx-dock="side"] .sx-dock-inner{flex-direction:column;align-items:center;width:100%;height:100%;border-radius:0;padding:10px 0;gap:8px;box-shadow:none;border-right:1px solid rgba(255,255,255,.06);}
+html[data-sx-dock="side"] .sx-dsep{width:60%;height:1px;align-self:center;margin:2px 0;}
+html[data-sx-dock="side"] .sx-dspacer{flex:1;}
+html[data-sx-dock="side"] .sx-ddot{left:-7px;top:50%;bottom:auto;width:4px;height:4px;background:var(--sx-accent);transform:translateY(-50%);}
+html[data-sx-dock="side"] .sx-ditem.running .sx-ddot{opacity:1;}
+html[data-sx-dock="side"] .sx-ditem{border-radius:12px;padding:3px;}
+html[data-sx-dock="side"] .sx-ditem:hover{background:rgba(255,255,255,.1);}
+html[data-sx-dock="side"] .sx-dtip{left:calc(100% + 14px);bottom:auto;top:50%;transform:translateY(-50%);}
+/* Windows 11 taskbar */
+html[data-sx-dock="taskbar"] #sx-dock{left:0;right:0;bottom:0;height:48px;}
+html[data-sx-dock="taskbar"] .sx-dock-inner{width:100%;height:100%;border-radius:0;padding:0 8px;align-items:center;gap:4px;box-shadow:none;border-top:1px solid var(--sx-dock-border);}
+html[data-sx-dock="taskbar"] .sx-tb-center{position:absolute;left:50%;transform:translateX(-50%);display:flex;gap:4px;align-items:center;height:100%;}
+html[data-sx-dock="taskbar"] .sx-ditem{width:40px;height:40px;padding:6px;border-radius:5px;}
+html[data-sx-dock="taskbar"] .sx-ditem .sx-tile{font-size:17px;}
+html[data-sx-dock="taskbar"] .sx-ditem:hover{background:rgba(127,127,127,.16);}
+html[data-sx-dock="taskbar"] .sx-ditem.focused{background:rgba(127,127,127,.2);}
+html[data-sx-dock="taskbar"] .sx-ddot{bottom:1px;width:6px;height:3px;border-radius:2px;background:var(--sx-text-2);}
+html[data-sx-dock="taskbar"] .sx-ditem.focused .sx-ddot{width:16px;background:var(--sx-accent);}
+html[data-sx-dock="taskbar"] .sx-dtip{bottom:calc(100% + 10px);}
+.sx-tb-right{margin-left:auto;display:flex;align-items:center;gap:2px;height:100%;color:var(--sx-text);font:400 12px var(--sx-font);}
+.sx-tb-left{display:flex;align-items:center;height:100%;}
+.sx-tray{display:flex;align-items:center;gap:8px;padding:0 10px;height:40px;border-radius:5px;cursor:default;}
+.sx-tray:hover{background:rgba(127,127,127,.16);}
+.sx-tray-clock{text-align:right;line-height:1.35;font-variant-numeric:tabular-nums;}
+.sx-weather{display:flex;align-items:center;gap:8px;padding:0 10px;height:40px;border-radius:5px;font:400 12px/1.2 var(--sx-font);color:var(--sx-text);cursor:default;}
+.sx-weather:hover{background:rgba(127,127,127,.16);}
+.sx-weather b{display:block;font-weight:600;}
+.sx-weather small{color:var(--sx-text-2);}
+
+/* ── 8. APP ICON TILES (dock, launcher, desktop) ── */
+.sx-tile{display:flex;align-items:center;justify-content:center;border-radius:var(--sx-ishape,22.5%);position:relative;overflow:hidden;
+  background:linear-gradient(160deg,var(--ia,#5e6a82) 0%,var(--ib,#2c3444) 100%);color:#fff;line-height:1;
+  box-shadow:inset 0 0 0 .5px rgba(255,255,255,.22),0 2px 6px rgba(0,0,0,.22);}
+.sx-tile::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.26) 0%,rgba(255,255,255,0) 52%);pointer-events:none;}
+.sx-tile img{width:100%;height:100%;object-fit:cover;}
+.sx-tile .sx-emoji{filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.28));}
+html[data-sx-istyle="glass"] .sx-tile{background:rgba(255,255,255,.16);backdrop-filter:blur(18px);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.35),0 4px 14px rgba(0,0,0,.2);}
+html[data-sx-istyle="glass"][data-theme="light"] .sx-tile{background:rgba(255,255,255,.55);}
+html[data-sx-istyle="mono"] .sx-tile{background:#1a1a1a;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);}
+html[data-sx-istyle="mono"] .sx-tile .sx-emoji{filter:grayscale(1) contrast(1.2) brightness(1.3);}
+html[data-sx-istyle="mono"][data-theme="light"] .sx-tile{background:#fff;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08),0 2px 8px rgba(0,0,0,.06);}
+html[data-sx-istyle="mono"][data-theme="light"] .sx-tile .sx-emoji{filter:grayscale(1) contrast(1.3) brightness(.4);}
+html[data-sx-istyle="mono"] .sx-tile::before,html[data-sx-istyle="glass"] .sx-tile::before{display:none;}
+html[data-sx-istyle="flat"] .sx-tile::before{display:none;}
+html[data-sx-istyle="flat"] .sx-tile{background:var(--ia);box-shadow:none;}
+
+/* desktop icons */
+html[data-shell]:not([data-shell="nexus"]) .desk-icon{width:calc(var(--sx-icon) + 30px);height:calc(var(--sx-icon) + 40px);gap:7px;padding:4px 2px;border-radius:12px;}
+html[data-shell]:not([data-shell="nexus"]) .desk-icon .icon-img{width:var(--sx-icon);height:var(--sx-icon);border-radius:var(--sx-ishape,22.5%);border:none;
+  background:linear-gradient(160deg,var(--ia,#5e6a82) 0%,var(--ib,#2c3444) 100%)!important;font-size:calc(var(--sx-icon) * .5);
+  box-shadow:inset 0 0 0 .5px rgba(255,255,255,.22),0 6px 16px rgba(0,0,0,.26);}
+html[data-shell]:not([data-shell="nexus"]) .desk-icon .icon-img::before{background:linear-gradient(180deg,rgba(255,255,255,.26) 0%,rgba(255,255,255,0) 52%);}
+html[data-shell]:not([data-shell="nexus"]) .desk-icon:hover .icon-img{transform:translateY(-2px) scale(1.04);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.3),0 10px 24px rgba(0,0,0,.32);border-color:transparent;}
+html[data-shell]:not([data-shell="nexus"]) .icon-lbl{font:500 12px/1.2 var(--sx-font);color:#fff;max-width:calc(var(--sx-icon) + 30px);text-shadow:0 1px 3px rgba(0,0,0,.55),0 0 10px rgba(0,0,0,.25);}
+html[data-sx-labels="0"] .icon-lbl{visibility:hidden;}
+html[data-sx-istyle="glass"] #icon-grid .desk-icon .icon-img{background:rgba(255,255,255,.16)!important;backdrop-filter:blur(18px);}
+html[data-sx-istyle="mono"] #icon-grid .desk-icon .icon-img{background:#1a1a1a!important;}
+html[data-sx-istyle="mono"] #icon-grid .desk-icon .icon-img{filter:grayscale(1) contrast(1.15);}
+html[data-sx-istyle="mono"][data-theme="light"] #icon-grid .desk-icon .icon-img{background:#fff!important;}
+html[data-sx-istyle="flat"] #icon-grid .desk-icon .icon-img{background:var(--ia)!important;}
+html[data-sx-istyle="flat"] #icon-grid .desk-icon .icon-img::before,html[data-sx-istyle="mono"] #icon-grid .desk-icon .icon-img::before{display:none;}
+
+/* ── 9. WINDOWS ── */
+html[data-shell]:not([data-shell="nexus"]) .os-window{border-radius:var(--sx-radius);border:none;background:var(--sx-win-bg);
+  box-shadow:0 0 0 .5px var(--sx-hairline-2),var(--sx-inner),0 calc(26px * var(--sx-shadow-k)) calc(80px * var(--sx-shadow-k)) rgba(0,0,0,calc(.34 * var(--sx-shadow-k))),0 calc(6px * var(--sx-shadow-k)) calc(18px * var(--sx-shadow-k)) rgba(0,0,0,calc(.2 * var(--sx-shadow-k)));
+  animation:sxWinOpen calc(.32s * var(--sx-speed)) var(--sx-spring) both;}
+html[data-shell]:not([data-shell="nexus"]) .os-window:not(.focused){box-shadow:0 0 0 .5px var(--sx-hairline),0 calc(12px * var(--sx-shadow-k)) calc(36px * var(--sx-shadow-k)) rgba(0,0,0,calc(.22 * var(--sx-shadow-k)));}
+html[data-shell]:not([data-shell="nexus"]) .os-window.focused{border-color:transparent;}
+@keyframes sxWinOpen{from{opacity:0;transform:scale(.94) translateY(10px)}to{opacity:1;transform:none}}
+html[data-shell="windows11"] .os-window{animation-name:sxWinOpenW;animation-timing-function:var(--sx-ease);}
+@keyframes sxWinOpenW{from{opacity:0;transform:translateY(22px) scale(.98)}to{opacity:1;transform:none}}
+html[data-shell]:not([data-shell="nexus"]) .os-window.anim-close{animation:sxWinClose calc(.2s * var(--sx-speed)) var(--sx-ease) forwards;}
+@keyframes sxWinClose{to{opacity:0;transform:scale(.94)}}
+html[data-shell]:not([data-shell="nexus"]) .os-window.anim-minimize{animation:sxWinMin calc(.38s * var(--sx-speed)) cubic-bezier(.5,0,.8,.4) forwards;transform-origin:50% 100%;}
+@keyframes sxWinMin{to{opacity:0;transform:translateY(55vh) scale(.12,.18);filter:blur(1px)}}
+html[data-sx-anim="0"] *{animation-duration:0s!important;transition-duration:0s!important;}
+html[data-shell]:not([data-shell="nexus"]) .win-body{background:var(--sx-win-bg);}
+html[data-shell]:not([data-shell="nexus"]) .win-bar{height:40px;background:var(--sx-win-bar);border-bottom:.5px solid var(--sx-hairline);padding:0 12px;gap:8px;}
+html[data-shell]:not([data-shell="nexus"]) .win-title{font:600 13px var(--sx-font)!important;letter-spacing:normal!important;color:var(--sx-text);opacity:.86;}
+html[data-shell]:not([data-shell="nexus"]) .os-window:not(.focused) .win-title{opacity:.45;}
+html[data-shell]:not([data-shell="nexus"]) .win-resize-handle::after{display:none;}
+html[data-shell]:not([data-shell="nexus"]) .win-controls{gap:8px;}
+:where(html[data-shell]:not([data-shell="nexus"])) .wc{position:relative;display:flex;align-items:center;justify-content:center;color:rgba(0,0,0,.6);transition:all .12s;}
+:where(html[data-shell]:not([data-shell="nexus"])) .wc:hover{transform:none;filter:none;}
+/* traffic lights */
+html[data-sx-ctl="traffic"] .wc{width:12.5px;height:12.5px;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.18);}
+html[data-sx-ctl="traffic"] .wc::after{font:700 9px/1 -apple-system,"Segoe UI",sans-serif;opacity:0;transition:opacity .1s;}
+html[data-sx-ctl="traffic"] .win-controls:hover .wc::after{opacity:1;}
+html[data-sx-ctl="traffic"] .wc-close::after{content:"✕";font-size:7.5px;}
+html[data-sx-ctl="traffic"] .wc-min::after{content:"–";font-size:11px;margin-top:-1px;}
+html[data-sx-ctl="traffic"] .wc-max::after{content:"+";font-size:11px;}
+html[data-sx-ctl="traffic"] .os-window:not(.focused) .win-controls:not(:hover) .wc{background:var(--sx-card-2);box-shadow:inset 0 0 0 .5px var(--sx-hairline-2);}
+/* move controls to the right for everyone except traffic/ipad */
+html:is([data-sx-ctl="win"],[data-sx-ctl="pill"],[data-sx-ctl="gnome"]) .win-controls{order:3;}
+html:is([data-sx-ctl="win"],[data-sx-ctl="pill"],[data-sx-ctl="gnome"]) .win-bar>div:last-child:not(.win-controls){display:none;}
+html:is([data-sx-ctl="win"],[data-sx-ctl="pill"],[data-sx-ctl="gnome"]) .wc-min{order:1;}
+html:is([data-sx-ctl="win"],[data-sx-ctl="pill"],[data-sx-ctl="gnome"]) .wc-max{order:2;}
+html:is([data-sx-ctl="win"],[data-sx-ctl="pill"],[data-sx-ctl="gnome"]) .wc-close{order:3;}
+html:is([data-sx-ctl="win"],[data-sx-ctl="pill"],[data-sx-ctl="gnome"]) .wc{background:transparent;color:var(--sx-text);opacity:.85;}
+html:is([data-sx-ctl="win"],[data-sx-ctl="pill"],[data-sx-ctl="gnome"]) .os-window:not(.focused) .wc{opacity:.45;}
+html:is([data-sx-ctl="win"],[data-sx-ctl="pill"],[data-sx-ctl="gnome"]) .wc-close::after{content:"✕";}
+html:is([data-sx-ctl="win"],[data-sx-ctl="pill"],[data-sx-ctl="gnome"]) .wc-min::after{content:"";width:10px;height:1.2px;background:currentColor;border-radius:1px;}
+html:is([data-sx-ctl="win"],[data-sx-ctl="pill"],[data-sx-ctl="gnome"]) .wc-max::after{content:"";width:9px;height:9px;border:1.2px solid currentColor;border-radius:2px;}
+/* Windows */
+html[data-sx-ctl="win"] .win-bar{padding:0 0 0 12px;height:36px;}
+html[data-sx-ctl="win"] .win-title{text-align:left;font-weight:400!important;font-size:12px!important;}
+html[data-sx-ctl="win"] .win-controls{gap:0;align-self:stretch;}
+html[data-sx-ctl="win"] .wc{width:46px;height:100%;border-radius:0;}
+html[data-sx-ctl="win"] .wc-close::after{font-size:13px;font-weight:300;}
+html[data-sx-ctl="win"] .wc:hover{background:rgba(127,127,127,.18);}
+html[data-sx-ctl="win"] .wc-close:hover{background:#c42b1c;color:#fff;}
+/* Pill (HyperOS / HarmonyOS / One UI / Nothing) */
+html[data-sx-ctl="pill"] .win-bar{height:46px;padding:0 12px 0 18px;border-bottom:none;}
+html[data-sx-ctl="pill"] .win-title{text-align:left;font-size:15px!important;font-weight:650!important;}
+html[data-sx-ctl="pill"] .win-controls{gap:8px;}
+html[data-sx-ctl="pill"] .wc{width:28px;height:28px;border-radius:50%;background:var(--sx-card);}
+html[data-sx-ctl="pill"] .wc-close::after{font-size:11px;font-weight:600;}
+html[data-sx-ctl="pill"] .wc:hover{background:var(--sx-card-hover);}
+html[data-sx-ctl="pill"] .wc-close:hover{background:var(--sx-danger);color:#fff;}
+/* GNOME */
+html[data-sx-ctl="gnome"] .win-bar{height:44px;}
+html[data-sx-ctl="gnome"] .win-controls{gap:10px;}
+html[data-sx-ctl="gnome"] .wc{width:24px;height:24px;border-radius:50%;}
+html[data-sx-ctl="gnome"] .wc:hover{background:var(--sx-card-hover);}
+html[data-sx-ctl="gnome"] .wc-close{background:var(--sx-card-2);}
+html[data-sx-ctl="gnome"] .wc-close::after{font-size:10px;font-weight:700;}
+/* iPadOS / visionOS — centered multitasking pill */
+html[data-sx-ctl="ipad"] .win-bar{height:30px;border-bottom:none;background:transparent;position:absolute;left:0;right:0;top:0;z-index:5;justify-content:center;}
+html[data-sx-ctl="ipad"] .os-window{padding-top:30px;}
+html[data-sx-ctl="ipad"] .win-title,html[data-sx-ctl="ipad"] .win-bar>div:last-child:not(.win-controls){display:none;}
+html[data-sx-ctl="ipad"] .win-controls{gap:5px;padding:5px 8px;border-radius:99px;transition:all .18s var(--sx-ease);}
+html[data-sx-ctl="ipad"] .wc{width:6px;height:6px;background:var(--sx-text-2);}
+html[data-sx-ctl="ipad"] .win-bar:hover .win-controls{background:var(--sx-card-2);gap:8px;}
+html[data-sx-ctl="ipad"] .win-bar:hover .wc{width:20px;height:20px;background:transparent;color:var(--sx-text);}
+html[data-sx-ctl="ipad"] .win-bar:hover .wc:hover{background:var(--sx-card-hover);}
+html[data-sx-ctl="ipad"] .win-bar:hover .wc-close::after{content:"✕";font-size:10px;font-weight:700;}
+html[data-sx-ctl="ipad"] .win-bar:hover .wc-min::after{content:"";width:9px;height:1.5px;background:currentColor;}
+html[data-sx-ctl="ipad"] .win-bar:hover .wc-max::after{content:"";width:8px;height:8px;border:1.5px solid currentColor;border-radius:2px;}
+html[data-sx-ctl="ipad"] .os-window{background:var(--sx-win-bg);}
+html[data-shell="visionos"] .os-window{backdrop-filter:blur(var(--sx-blur)) saturate(170%);-webkit-backdrop-filter:blur(var(--sx-blur)) saturate(170%);}
+html[data-shell="visionos"] .win-body{background:transparent;}
+/* window snapping preview */
+#sx-snap{position:fixed;z-index:49;border-radius:var(--sx-radius);background:rgba(var(--sx-accent-rgb),.16);box-shadow:inset 0 0 0 1.5px rgba(var(--sx-accent-rgb),.5);
+  backdrop-filter:blur(8px);pointer-events:none;opacity:0;transition:all .18s var(--sx-ease);}
+#sx-snap.show{opacity:1;}
+
+/* folders */
+html[data-shell]:not([data-shell="nexus"]) .desk-folder{width:calc(var(--sx-icon) + 30px);height:calc(var(--sx-icon) + 40px);gap:7px;}
+html[data-shell]:not([data-shell="nexus"]) .folder-img{width:var(--sx-icon)!important;height:var(--sx-icon)!important;border-radius:var(--sx-ishape,22.5%)!important;background:rgba(255,255,255,.2)!important;backdrop-filter:blur(20px);border:none!important;box-shadow:inset 0 0 0 .5px rgba(255,255,255,.3),0 6px 16px rgba(0,0,0,.2)!important;}
+html[data-shell]:not([data-shell="nexus"]) .folder-lbl{font:500 12px var(--sx-font)!important;color:#fff!important;text-shadow:0 1px 3px rgba(0,0,0,.55);letter-spacing:normal!important;}
+
+/* ── 10. SYSTEM SURFACES: toast, ctx menu, modals, widgets, settings ── */
+html[data-shell]:not([data-shell="nexus"]) #toast{top:calc(var(--sb-h) + 10px);padding:10px 18px;border-radius:99px;border:none;
+  background:var(--sx-glass-strong);color:var(--sx-text);font:500 13px var(--sx-font)!important;letter-spacing:normal;
+  box-shadow:var(--sx-shadow-soft),0 0 0 .5px var(--sx-hairline-2);backdrop-filter:blur(30px) saturate(180%);
+  transform:translate(-50%,-8px) scale(.96);transition:opacity .25s,transform .35s var(--sx-spring);}
+html[data-shell]:not([data-shell="nexus"]) #toast.show{transform:translate(-50%,0) scale(1);}
+html[data-shell="macos"] #toast,html[data-shell="ubuntu"] #toast{left:auto;right:14px;border-radius:14px;transform:translateX(20px);}
+html[data-shell="macos"] #toast.show,html[data-shell="ubuntu"] #toast.show{transform:none;}
+html[data-shell="windows11"] #toast{top:auto;bottom:60px;left:auto;right:12px;border-radius:8px;transform:translateY(16px);}
+html[data-shell="windows11"] #toast.show{transform:none;}
+html[data-shell]:not([data-shell="nexus"]) .dctx-panel{background:var(--sx-glass-strong);border:none;border-radius:calc(var(--sx-radius-sm) + 4px);padding:5px;
+  box-shadow:var(--sx-shadow),0 0 0 .5px var(--sx-hairline-2);backdrop-filter:blur(var(--sx-blur)) saturate(var(--sx-sat));min-width:220px;}
+html[data-shell]:not([data-shell="nexus"]) .dctx-item{padding:6px 10px;border-radius:6px;font:400 13px var(--sx-font)!important;letter-spacing:normal;gap:10px;}
+html[data-shell]:not([data-shell="nexus"]) .dctx-item:hover{background:var(--sx-accent);color:var(--sx-on-accent);}
+html[data-shell]:not([data-shell="nexus"]) .dctx-item:hover span{color:inherit!important;}
+html[data-shell]:not([data-shell="nexus"]) .dctx-item-icon{width:20px;height:20px;background:transparent!important;font-size:13px;}
+html[data-shell]:not([data-shell="nexus"]) .dctx-label{color:var(--sx-text-3);letter-spacing:normal;font:600 11px var(--sx-font)!important;}
+html[data-shell]:not([data-shell="nexus"]) .dctx-sep{background:var(--sx-hairline);}
+html[data-shell]:not([data-shell="nexus"]) .dctx-wp-btn{border-radius:8px;border:none;background:var(--sx-card);color:var(--sx-text);font:500 11px var(--sx-font)!important;padding:10px 4px;letter-spacing:normal;}
+html[data-shell]:not([data-shell="nexus"]) .dctx-wp-btn.active{box-shadow:0 0 0 2px var(--sx-accent);}
+html[data-shell]:not([data-shell="nexus"]) .dctx-upload-btn,html[data-shell]:not([data-shell="nexus"]) .dctx-back{font:500 12px var(--sx-font)!important;letter-spacing:normal;}
+html[data-shell]:not([data-shell="nexus"]) .modal-backdrop{background:rgba(0,0,0,.28);backdrop-filter:blur(6px);}
+html[data-shell]:not([data-shell="nexus"]) .modal-dialog{background:var(--sx-glass-strong);border:none;border-radius:var(--sx-radius-xl);box-shadow:var(--sx-shadow),0 0 0 .5px var(--sx-hairline-2);backdrop-filter:blur(var(--sx-blur)) saturate(var(--sx-sat));}
+html[data-shell]:not([data-shell="nexus"]) .modal-title{font:700 17px var(--sx-font)!important;letter-spacing:normal;color:var(--sx-text);}
+html[data-shell]:not([data-shell="nexus"]) .modal-label{font:500 12px var(--sx-font)!important;letter-spacing:normal;color:var(--sx-text-2);}
+html[data-shell]:not([data-shell="nexus"]) :is(.modal-input,.modal-select,.modal-textarea){background:var(--sx-card);border:.5px solid var(--sx-hairline-2);border-radius:8px;color:var(--sx-text);}
+html[data-shell]:not([data-shell="nexus"]) .modal-input:focus{border-color:var(--sx-accent);box-shadow:0 0 0 3px rgba(var(--sx-accent-rgb),.3);}
+html[data-shell]:not([data-shell="nexus"]) .modal-btn{font:600 13px var(--sx-font)!important;letter-spacing:normal;border-radius:10px;}
+html[data-shell]:not([data-shell="nexus"]) .modal-btn-primary{background:var(--sx-accent);}
+html[data-shell]:not([data-shell="nexus"]) .modal-btn-cancel{background:var(--sx-card-2);color:var(--sx-text);border:none;}
+html[data-shell]:not([data-shell="nexus"]) #widget-panel{top:calc(var(--sb-h) + 8px);bottom:calc(var(--tb-h) + 8px);left:-360px;width:340px;border:none;border-radius:var(--sx-radius-xl);
+  background:var(--sx-glass);backdrop-filter:blur(var(--sx-blur)) saturate(var(--sx-sat));box-shadow:var(--sx-shadow),0 0 0 .5px var(--sx-hairline-2);padding:14px;}
+html[data-shell]:not([data-shell="nexus"]) #widget-panel.open{left:calc(var(--sx-left) + 8px);}
+html[data-shell]:not([data-shell="nexus"]) .widget-panel-title{font:700 15px var(--sx-font)!important;letter-spacing:normal;color:var(--sx-text);}
+html[data-shell]:not([data-shell="nexus"]) .widget-panel-header{border-bottom:none;}
+/* Settings + shared app chrome */
+html[data-shell]:not([data-shell="nexus"]) .set-root{background:var(--sx-surface);padding:22px;}
+html[data-shell]:not([data-shell="nexus"]) .set-title{font:700 24px var(--sx-font)!important;letter-spacing:-.01em!important;color:var(--sx-text);border-bottom:none;padding-bottom:4px;margin-bottom:18px;}
+html[data-shell]:not([data-shell="nexus"]) .set-section{background:var(--sx-win-bg);border:none;border-radius:var(--sx-radius-lg);padding:16px;margin-bottom:14px;box-shadow:0 0 0 .5px var(--sx-hairline);}
+html[data-shell][data-theme="dark"]:not([data-shell="nexus"]) .set-section{background:var(--sx-card);}
+html[data-shell]:not([data-shell="nexus"]) .set-section-title{font:600 12.5px var(--sx-font)!important;letter-spacing:normal!important;color:var(--sx-text-2);text-transform:none;margin-bottom:12px;}
+html[data-shell]:not([data-shell="nexus"]) .toggle-lbl{font:500 14px var(--sx-font)!important;}
+html[data-shell]:not([data-shell="nexus"]) .toggle-sw{width:44px;height:26px;border-radius:99px;border:none;background:var(--sx-card-2);}
+html[data-shell]:not([data-shell="nexus"]) .toggle-sw::after{top:2px;left:2px;width:22px;height:22px;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.25);transition:left .25s var(--sx-spring);}
+html[data-shell]:not([data-shell="nexus"]) .toggle-sw.on{background:var(--sx-ok);}
+html[data-shell]:not([data-shell="nexus"]) .toggle-sw.on::after{left:20px;background:#fff;}
+html[data-shell]:not([data-shell="nexus"]) :is(.generic-btn,.wp-upload-btn){border:none;border-radius:10px;background:var(--sx-card-2);color:var(--sx-accent);font:600 13px var(--sx-font)!important;padding:9px;}
+html[data-shell]:not([data-shell="nexus"]) :is(.generic-btn,.wp-upload-btn):hover{background:var(--sx-card-hover);}
+html[data-shell]:not([data-shell="nexus"]) .admin-btn{border-radius:10px!important;font-family:var(--sx-font)!important;}
+html[data-shell]:not([data-shell="nexus"]) :is(.calc-app,.music-app,.finder-app,.store-app,.admin-app,.vault-app,.updatelog-app,.mod-app,.pettube-app){background:var(--sx-surface)!important;}
+html[data-shell]:not([data-shell="nexus"]) .calc-app{padding:18px;gap:12px;}
+html[data-shell]:not([data-shell="nexus"]) .calc-display{background:transparent;border:none;padding:10px 8px;}
+html[data-shell]:not([data-shell="nexus"]) .calc-result{font:300 52px var(--sx-font)!important;color:var(--sx-text);}
+html[data-shell]:not([data-shell="nexus"]) .calc-expr{font:400 14px var(--sx-font)!important;color:var(--sx-text-3);}
+html[data-shell]:not([data-shell="nexus"]) .calc-btn{border:none!important;border-radius:99px;font:500 22px var(--sx-font)!important;box-shadow:none!important;}
+html[data-shell]:not([data-shell="nexus"]) .calc-btn-num{background:var(--sx-card-2);color:var(--sx-text);}
+html[data-shell]:not([data-shell="nexus"]) .calc-btn-num:hover{background:var(--sx-card-hover);}
+html[data-shell]:not([data-shell="nexus"]) .calc-btn-clr{background:rgba(127,127,127,.35);color:var(--sx-text);}
+html[data-shell]:not([data-shell="nexus"]) :is(.calc-btn-op,.calc-btn-eq){background:var(--sx-accent);color:#fff;}
+html[data-shell]:not([data-shell="nexus"]) :is(.music-sidebar,.music-now-playing){background:var(--sx-card)!important;}
+html[data-shell]:not([data-shell="nexus"]) :is(.finder-sidebar,.music-sidebar){background:var(--sx-card)!important;border-right:.5px solid var(--sx-hairline)!important;}
+html[data-shell]:not([data-shell="nexus"]) :is(.finder-toolbar,.finder-statusbar,.music-header){background:transparent!important;border-color:var(--sx-hairline)!important;}
+html[data-shell]:not([data-shell="nexus"]) .finder-sb-title{font:600 11px var(--sx-font)!important;color:var(--sx-text-3);letter-spacing:normal;opacity:1;}
+html[data-shell]:not([data-shell="nexus"]) .finder-nav-item{font-weight:500;color:var(--sx-text);border-radius:7px;margin:0 8px;padding:6px 10px;}
+html[data-shell]:not([data-shell="nexus"]) .finder-icon{background:var(--sx-card-2);border:none;border-radius:12px;}
+html[data-shell]:not([data-shell="nexus"]) :is(.finder-vbtn,.finder-upbtn,.music-scan-btn,.music-folder-btn){border:none!important;border-radius:7px!important;background:var(--sx-card-2)!important;color:var(--sx-text)!important;font-family:var(--sx-font)!important;letter-spacing:normal!important;}
+html[data-shell]:not([data-shell="nexus"]) .music-nav-item.active{background:rgba(var(--sx-accent-rgb),.14);border-right:none;border-radius:7px;margin:0 8px;}
+html[data-shell]:not([data-shell="nexus"]) .music-nav-item{margin:0 8px;border-radius:7px;}
+html[data-shell]:not([data-shell="nexus"])[data-theme="light"] :is(.icon-lbl,.folder-lbl){color:rgba(0,0,0,.84)!important;text-shadow:0 0 6px rgba(255,255,255,.7),0 1px 1px rgba(255,255,255,.5);}
+html[data-shell="ubuntu"][data-theme="light"] :is(.icon-lbl,.folder-lbl),html[data-shell="macos"][data-theme="light"] :is(.icon-lbl,.folder-lbl){color:rgba(0,0,0,.84)!important;}
+html[data-shell]:not([data-shell="nexus"]) ::-webkit-scrollbar{width:8px;height:8px;}
+html[data-shell]:not([data-shell="nexus"]) ::-webkit-scrollbar-thumb{background:rgba(127,127,127,.4);border-radius:8px;border:2px solid transparent;background-clip:padding-box;}
+html[data-shell]:not([data-shell="nexus"]) ::-webkit-scrollbar-track{background:transparent;}
+
+/* boot / lock / login */
+html[data-shell]:not([data-shell="nexus"]) #boot{background:#000;}
+html[data-shell]:not([data-shell="nexus"]) #boot-canvas,html[data-shell]:not([data-shell="nexus"]) .boot-sub,html[data-shell]:not([data-shell="nexus"]) .boot-msg{display:none;}
+html[data-shell]:not([data-shell="nexus"]) .boot-logo{font:700 44px var(--sx-font)!important;letter-spacing:-.02em;color:#fff;text-shadow:none;margin-bottom:28px;}
+html[data-shell]:not([data-shell="nexus"]) .boot-logo::before{content:"⬡";display:block;text-align:center;font-size:72px;font-weight:300;margin-bottom:6px;}
+html[data-shell]:not([data-shell="nexus"]) .boot-bar-wrap{width:180px;height:5px;border-radius:9px;background:rgba(255,255,255,.2);}
+html[data-shell]:not([data-shell="nexus"]) .boot-bar{background:#fff;border-radius:9px;}
+html[data-shell]:not([data-shell="nexus"]) :is(#lock-screen,#user-login-screen){background:rgba(0,0,0,.22);backdrop-filter:blur(50px) saturate(160%);-webkit-backdrop-filter:blur(50px) saturate(160%);}
+html[data-shell]:not([data-shell="nexus"]) #lock-screen{justify-content:flex-start;padding-top:12vh;gap:4px;}
+html[data-shell]:not([data-shell="nexus"]) .lock-date{order:-1;font:600 20px var(--sx-font)!important;letter-spacing:normal;color:rgba(255,255,255,.85);text-transform:capitalize;}
+html[data-shell]:not([data-shell="nexus"]) .lock-time{font:700 112px/1 var(--sx-font-display, var(--sx-font))!important;letter-spacing:-.03em;color:rgba(255,255,255,.92);text-shadow:0 4px 30px rgba(0,0,0,.15);}
+html[data-shell="nothing"] .lock-time{font-family:"Doto","Space Mono",monospace!important;font-weight:900!important;}
+html[data-shell]:not([data-shell="nexus"]) .lock-logo{display:none;}
+html[data-shell]:not([data-shell="nexus"]) .lock-hint{position:absolute;bottom:40px;font:500 0px var(--sx-font)!important;letter-spacing:normal;color:rgba(255,255,255,.7);}
+html[data-shell]:not([data-shell="nexus"]) .lock-hint::before{content:"Click to unlock";font-size:14px;}
+html[data-shell]:not([data-shell="nexus"]) .lock-hint::after{content:"";display:block;width:140px;height:5px;border-radius:9px;background:rgba(255,255,255,.8);margin:14px auto 0;}
+html[data-shell]:not([data-shell="nexus"]) .ulogin-avatar{width:104px;height:104px;border:none;background:rgba(255,255,255,.22);box-shadow:0 10px 40px rgba(0,0,0,.25);}
+html[data-shell]:not([data-shell="nexus"]) .ulogin-avatar-badge{display:none;}
+html[data-shell]:not([data-shell="nexus"]) .ulogin-name{font:600 24px var(--sx-font)!important;letter-spacing:normal;}
+html[data-shell]:not([data-shell="nexus"]) .ulogin-sub{font:500 13px var(--sx-font)!important;letter-spacing:normal;color:rgba(255,255,255,.7);}
+html[data-shell]:not([data-shell="nexus"]) .ulogin-dot{width:13px;height:13px;border:1.5px solid rgba(255,255,255,.85);background:transparent;}
+html[data-shell]:not([data-shell="nexus"]) .ulogin-dot.filled{background:#fff;border-color:#fff;box-shadow:none;}
+html[data-shell]:not([data-shell="nexus"]) .ulogin-numpad{width:270px;gap:16px 24px;}
+html[data-shell]:not([data-shell="nexus"]) .ulogin-key{width:74px;height:74px;border-radius:50%;margin:auto;border:none;background:rgba(255,255,255,.18);font:400 30px var(--sx-font)!important;backdrop-filter:blur(20px);}
+html[data-shell]:not([data-shell="nexus"]) .ulogin-key:hover{background:rgba(255,255,255,.3);transform:none;}
+html[data-shell]:not([data-shell="nexus"]) .ulogin-key.del{background:transparent;color:#fff;font-size:20px!important;}
+html[data-shell]:not([data-shell="nexus"]) .ulogin-guest-btn{font:500 13px var(--sx-font)!important;letter-spacing:normal;color:rgba(255,255,255,.75);}
+html[data-shell]:not([data-shell="nexus"]) .ulogin-error-msg{font:500 12px var(--sx-font)!important;}
+html[data-shell]:not([data-shell="nexus"]) #whats-new-overlay{background:rgba(0,0,0,.3);backdrop-filter:blur(14px);}
+html[data-shell]:not([data-shell="nexus"]) .wn-dialog{background:var(--sx-glass-strong)!important;border:none!important;border-radius:var(--sx-radius-xl)!important;box-shadow:var(--sx-shadow),0 0 0 .5px var(--sx-hairline-2)!important;color:var(--sx-text);}
+html[data-shell]:not([data-shell="nexus"]) .wn-title{font:800 30px var(--sx-font)!important;letter-spacing:-.02em!important;color:var(--sx-text)!important;background:none!important;-webkit-text-fill-color:currentColor!important;}
+html[data-shell]:not([data-shell="nexus"]) :is(.wn-badge,.wn-sub,.wn-section-label){font:600 12px var(--sx-font)!important;letter-spacing:normal!important;}
+html[data-shell]:not([data-shell="nexus"]) .wn-item{font:400 13.5px/1.45 var(--sx-font)!important;color:var(--sx-text-2)!important;}
+html[data-shell]:not([data-shell="nexus"]) :is(.wn-btn-primary,.wn-btn-secondary){font:600 14px var(--sx-font)!important;letter-spacing:normal!important;border-radius:12px!important;}
+html[data-shell]:not([data-shell="nexus"]) .wn-btn-primary{background:var(--sx-accent)!important;color:#fff!important;border:none!important;box-shadow:none!important;}
+
+/* ── 11. SHARED SX COMPONENTS ── */
+.sx-glass{background:var(--sx-glass);backdrop-filter:blur(var(--sx-blur)) saturate(var(--sx-sat));-webkit-backdrop-filter:blur(var(--sx-blur)) saturate(var(--sx-sat));box-shadow:var(--sx-shadow),0 0 0 .5px var(--sx-hairline-2);}
+.sx-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 14px;border-radius:9px;border:none;cursor:pointer;
+  background:var(--sx-card-2);color:var(--sx-text);font:500 13px var(--sx-font);transition:background .15s,transform .1s;}
+.sx-btn:hover{background:var(--sx-card-hover);}
+.sx-btn:active{transform:scale(.97);}
+.sx-btn.primary{background:var(--sx-accent);color:var(--sx-on-accent);}
+.sx-btn.primary:hover{filter:brightness(1.08);}
+.sx-btn.danger{color:var(--sx-danger);}
+.sx-switch{appearance:none;-webkit-appearance:none;width:40px;height:24px;border-radius:99px;background:var(--sx-card-2);position:relative;cursor:pointer;flex-shrink:0;transition:background .2s;outline:none;margin:0;}
+.sx-switch::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.25);transition:left .25s var(--sx-spring);}
+.sx-switch:checked{background:var(--sx-accent);}
+.sx-switch:checked::after{left:18px;}
+.sx-range{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:9px;outline:none;cursor:pointer;margin:0;
+  background:linear-gradient(to right,var(--sx-accent) 0 var(--p,50%),var(--sx-card-2) var(--p,50%) 100%);}
+.sx-range::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.3),0 0 0 .5px rgba(0,0,0,.08);cursor:grab;}
+.sx-range::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:none;box-shadow:0 1px 5px rgba(0,0,0,.3);}
+.sx-seg{display:inline-flex;padding:2px;border-radius:9px;background:var(--sx-card-2);gap:2px;flex-wrap:wrap;}
+.sx-seg button{border:none;background:transparent;color:var(--sx-text);font:500 12.5px var(--sx-font);padding:5px 12px;border-radius:7px;cursor:pointer;transition:all .15s;}
+.sx-seg button.on{background:var(--sx-win-bg);box-shadow:0 1px 3px rgba(0,0,0,.18),0 0 0 .5px var(--sx-hairline);}
+html[data-theme="dark"] .sx-seg button.on{background:rgba(255,255,255,.2);}
+.sx-seg button:not(.on):hover{background:var(--sx-card);}
+.sx-select{height:30px;padding:0 10px;border-radius:8px;border:.5px solid var(--sx-hairline-2);background:var(--sx-card);color:var(--sx-text);font:500 13px var(--sx-font);outline:none;}
+.sx-select option{background:var(--sx-surface);color:var(--sx-text);}
+.sx-input{height:34px;padding:0 12px;border-radius:9px;border:.5px solid var(--sx-hairline-2);background:var(--sx-card);color:var(--sx-text);font:400 14px var(--sx-font);outline:none;width:100%;}
+.sx-input:focus{box-shadow:0 0 0 3px rgba(var(--sx-accent-rgb),.3);border-color:var(--sx-accent);}
+
+/* ── 12. CONTROL CENTER ── */
+#sx-cc{position:fixed;z-index:9600;top:calc(var(--sb-h) + 8px);right:10px;width:356px;max-height:calc(100vh - var(--sb-h) - 20px);overflow-y:auto;
+  padding:14px;border-radius:var(--sx-radius-xl);color:var(--sx-text);font:500 13px var(--sx-font);
+  background:var(--sx-glass);backdrop-filter:blur(calc(var(--sx-blur) + 10px)) saturate(var(--sx-sat));-webkit-backdrop-filter:blur(calc(var(--sx-blur) + 10px)) saturate(var(--sx-sat));
+  box-shadow:var(--sx-shadow),0 0 0 .5px var(--sx-hairline-2);transform-origin:top right;animation:sxCcIn calc(.3s * var(--sx-speed)) var(--sx-spring);}
+html[data-shell="windows11"] #sx-cc{top:auto;bottom:58px;right:12px;transform-origin:bottom right;}
+@keyframes sxCcIn{from{opacity:0;transform:scale(.9) translateY(-8px)}to{opacity:1;transform:none}}
+#sx-cc.closing{animation:sxCcOut .18s var(--sx-ease) forwards;}
+@keyframes sxCcOut{to{opacity:0;transform:scale(.94)}}
+.sx-cc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.sx-cc-card{background:var(--sx-card-2);border-radius:calc(var(--sx-radius-lg) - 2px);padding:12px;min-width:0;}
+html[data-theme="light"] .sx-cc-card{background:rgba(255,255,255,.62);box-shadow:0 0 0 .5px var(--sx-hairline);}
+.sx-cc-conn{grid-column:span 2;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px;}
+.sx-cc-round{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:10.5px;color:var(--sx-text-2);cursor:pointer;text-align:center;}
+.sx-cc-round i{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(127,127,127,.28);color:var(--sx-text);font-style:normal;transition:all .2s;}
+.sx-cc-round.on i{background:var(--sx-accent);color:#fff;}
+.sx-cc-round:active i{transform:scale(.92);}
+.sx-cc-np{grid-column:span 2;display:flex;flex-direction:column;justify-content:space-between;}
+.sx-cc-np-art{width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:20px;background:linear-gradient(135deg,var(--sx-accent),#ff375f);}
+.sx-cc-np-title{font-weight:600;font-size:13px;margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sx-cc-np-sub{font-size:11px;color:var(--sx-text-2);}
+.sx-cc-np-ctl{display:flex;justify-content:space-around;margin-top:8px;}
+.sx-cc-np-ctl button{background:none;border:none;color:var(--sx-text);font-size:17px;cursor:pointer;padding:4px 8px;border-radius:8px;}
+.sx-cc-np-ctl button:hover{background:var(--sx-card-hover);}
+.sx-cc-tile{display:flex;align-items:center;gap:10px;cursor:pointer;grid-column:span 2;padding:12px;transition:background .2s,transform .1s;}
+.sx-cc-tile:active{transform:scale(.97);}
+.sx-cc-tile i{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(127,127,127,.28);font-style:normal;flex-shrink:0;}
+.sx-cc-tile.on i{background:var(--sx-accent);color:#fff;}
+.sx-cc-tile b{display:block;font-weight:600;font-size:12.5px;}
+.sx-cc-tile small{font-size:11px;color:var(--sx-text-2);}
+.sx-cc-sq{grid-column:span 1;display:flex;align-items:center;justify-content:center;aspect-ratio:1;cursor:pointer;font-size:19px;padding:0;transition:transform .1s,background .2s;}
+.sx-cc-sq:active{transform:scale(.94);}
+.sx-cc-sq.on{background:var(--sx-accent);color:#fff;}
+.sx-cc-slider{grid-column:span 4;padding:12px 14px;}
+.sx-cc-slider label{display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-bottom:10px;}
+.sx-cc-slider label span{color:var(--sx-text-2);font-weight:500;}
+.sx-cc-bigrange{-webkit-appearance:none;appearance:none;width:100%;height:30px;border-radius:99px;outline:none;cursor:pointer;margin:0;overflow:hidden;
+  background:linear-gradient(to right,rgba(255,255,255,.92) 0 var(--p,50%),rgba(127,127,127,.3) var(--p,50%) 100%);}
+html[data-theme="light"] .sx-cc-bigrange{background:linear-gradient(to right,var(--sx-accent) 0 var(--p,50%),rgba(0,0,0,.08) var(--p,50%) 100%);}
+.sx-cc-bigrange::-webkit-slider-thumb{-webkit-appearance:none;width:0;height:30px;box-shadow:none;}
+.sx-cc-wide{grid-column:span 4;}
+.sx-cc-styles{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;}
+.sx-cc-styles::-webkit-scrollbar{display:none;}
+.sx-chip{flex-shrink:0;padding:7px 12px;border-radius:99px;background:rgba(127,127,127,.2);font:500 12px var(--sx-font);color:var(--sx-text);border:none;cursor:pointer;white-space:nowrap;}
+.sx-chip.on{background:var(--sx-accent);color:#fff;}
+.sx-dots{display:flex;gap:9px;flex-wrap:wrap;}
+.sx-dot{width:22px;height:22px;border-radius:50%;cursor:pointer;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.2);position:relative;transition:transform .15s;}
+.sx-dot:hover{transform:scale(1.12);}
+.sx-dot.on::after{content:"";position:absolute;inset:-4px;border-radius:50%;box-shadow:0 0 0 2px var(--sx-text-2);}
+.sx-cc-foot{display:flex;justify-content:space-between;gap:6px;margin-top:10px;}
+.sx-cc-foot button{flex:1;height:36px;border-radius:12px;border:none;background:var(--sx-card-2);color:var(--sx-text);font:500 12px var(--sx-font);cursor:pointer;}
+.sx-cc-foot button:hover{background:var(--sx-card-hover);}
+.sx-cc-title{font:700 13px var(--sx-font);color:var(--sx-text-2);margin:2px 2px 8px;}
+
+/* ── 13. LAUNCHPAD / APP LIBRARY ── */
+#sx-launch{position:fixed;inset:0;z-index:9500;display:flex;flex-direction:column;align-items:center;padding:calc(var(--sb-h) + 34px) 6vw 120px;
+  background:rgba(0,0,0,.28);backdrop-filter:blur(46px) saturate(160%);-webkit-backdrop-filter:blur(46px) saturate(160%);
+  animation:sxFade calc(.28s * var(--sx-speed)) var(--sx-ease);}
+html[data-theme="light"] #sx-launch{background:rgba(255,255,255,.2);}
+#sx-launch.closing{animation:sxFadeOut .2s var(--sx-ease) forwards;}
+@keyframes sxFade{from{opacity:0}to{opacity:1}}
+@keyframes sxFadeOut{to{opacity:0}}
+.sx-launch-title{font:700 28px var(--sx-font);color:#fff;margin-bottom:16px;text-shadow:0 2px 10px rgba(0,0,0,.2);}
+.sx-launch-search{width:min(300px,80vw);height:34px;border-radius:10px;border:none;outline:none;padding:0 12px 0 32px;
+  background:rgba(255,255,255,.18) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") no-repeat 11px center;
+  color:#fff;font:400 14px var(--sx-font);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.3);}
+.sx-launch-search::placeholder{color:rgba(255,255,255,.7);}
+.sx-launch-grid{margin-top:44px;display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:34px 20px;width:min(1080px,100%);overflow-y:auto;padding:6px;}
+.sx-launch-app{display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;animation:sxPop calc(.42s * var(--sx-speed)) var(--sx-spring) both;}
+.sx-launch-app .sx-tile{width:78px;height:78px;font-size:38px;transition:transform .18s var(--sx-spring);}
+.sx-launch-app:hover .sx-tile{transform:scale(1.07);}
+.sx-launch-app:active .sx-tile{transform:scale(.94);filter:brightness(.8);}
+.sx-launch-app>span{font:500 13px var(--sx-font);color:#fff;text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.45);max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+@keyframes sxPop{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:none}}
+.sx-launch-empty{color:rgba(255,255,255,.7);font:500 15px var(--sx-font);grid-column:1/-1;text-align:center;}
+
+/* Windows 11 start menu */
+#sx-start{position:fixed;z-index:9500;left:50%;bottom:58px;width:min(640px,94vw);height:min(700px,calc(100vh - 80px));transform:translateX(-50%);
+  display:flex;flex-direction:column;border-radius:8px;color:var(--sx-text);font:400 13px var(--sx-font);
+  background:var(--sx-glass-strong);backdrop-filter:blur(60px) saturate(180%);-webkit-backdrop-filter:blur(60px) saturate(180%);
+  box-shadow:var(--sx-shadow),0 0 0 1px var(--sx-dock-border);animation:sxStartIn calc(.3s * var(--sx-speed)) var(--sx-ease);}
+@keyframes sxStartIn{from{opacity:0;transform:translate(-50%,40px)}to{opacity:1;transform:translate(-50%,0)}}
+#sx-start.closing{animation:sxStartOut .18s var(--sx-ease) forwards;}
+@keyframes sxStartOut{to{opacity:0;transform:translate(-50%,30px)}}
+.sx-start-body{flex:1;padding:28px 30px 10px;overflow-y:auto;}
+.sx-start-search{height:36px;border-radius:99px;border:none;border-bottom:2px solid var(--sx-accent);background:var(--sx-card-2);color:var(--sx-text);width:100%;padding:0 16px;font:400 13px var(--sx-font);outline:none;}
+.sx-start-h{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:14px;margin:24px 8px 12px;}
+.sx-start-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;}
+.sx-start-app{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 4px;border-radius:6px;cursor:default;text-align:center;}
+.sx-start-app:hover{background:var(--sx-card-hover);}
+.sx-start-app .sx-tile{width:36px;height:36px;font-size:19px;}
+.sx-start-app>span{font-size:12px;max-width:88px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sx-start-rec{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
+.sx-start-recitem{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:6px;cursor:default;}
+.sx-start-recitem:hover{background:var(--sx-card-hover);}
+.sx-start-recitem .sx-tile{width:30px;height:30px;font-size:16px;flex-shrink:0;}
+.sx-start-recitem small{display:block;color:var(--sx-text-2);font-size:11.5px;}
+.sx-start-foot{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 48px;border-top:1px solid var(--sx-hairline);background:rgba(127,127,127,.06);border-radius:0 0 8px 8px;}
+.sx-start-user{display:flex;align-items:center;gap:12px;padding:6px 10px;border-radius:6px;cursor:default;}
+.sx-start-user:hover,.sx-start-power:hover{background:var(--sx-card-hover);}
+.sx-start-av{width:32px;height:32px;border-radius:50%;background:var(--sx-card-2);display:flex;align-items:center;justify-content:center;font-size:17px;overflow:hidden;}
+.sx-start-av img{width:100%;height:100%;object-fit:cover;}
+.sx-start-power{width:38px;height:38px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:default;}
+
+/* ── 14. SPOTLIGHT ── */
+#sx-spot{position:fixed;inset:0;z-index:9900;display:flex;justify-content:center;align-items:flex-start;padding-top:18vh;background:transparent;}
+.sx-spot-box{width:min(680px,92vw);border-radius:calc(var(--sx-radius-lg) + 4px);overflow:hidden;color:var(--sx-text);
+  background:var(--sx-glass-strong);backdrop-filter:blur(50px) saturate(180%);-webkit-backdrop-filter:blur(50px) saturate(180%);
+  box-shadow:0 30px 90px rgba(0,0,0,.45),0 0 0 .5px var(--sx-hairline-2);animation:sxSpotIn calc(.22s * var(--sx-speed)) var(--sx-spring);}
+@keyframes sxSpotIn{from{opacity:0;transform:scale(.96) translateY(-8px)}to{opacity:1;transform:none}}
+.sx-spot-in{display:flex;align-items:center;gap:12px;padding:0 20px;height:62px;}
+.sx-spot-in svg{width:22px;height:22px;opacity:.55;flex-shrink:0;}
+.sx-spot-in input{flex:1;border:none;outline:none;background:transparent;color:var(--sx-text);font:300 24px var(--sx-font);}
+.sx-spot-in input::placeholder{color:var(--sx-text-3);}
+.sx-spot-res{max-height:52vh;overflow-y:auto;border-top:.5px solid var(--sx-hairline);padding:6px;}
+.sx-spot-res:empty{display:none;}
+.sx-spot-sec{font:600 11.5px var(--sx-font);color:var(--sx-text-3);padding:8px 12px 4px;}
+.sx-spot-item{display:flex;align-items:center;gap:12px;padding:7px 12px;border-radius:9px;cursor:default;}
+.sx-spot-item.sel{background:var(--sx-accent);color:var(--sx-on-accent);}
+.sx-spot-item.sel small{color:inherit;opacity:.8;}
+.sx-spot-item .sx-tile{width:30px;height:30px;font-size:16px;flex-shrink:0;}
+.sx-spot-item .sx-spot-ico{width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;border-radius:8px;background:var(--sx-card-2);}
+.sx-spot-item b{font-weight:500;font-size:14px;}
+.sx-spot-item small{margin-left:auto;color:var(--sx-text-3);font-size:12px;}
+.sx-spot-calc{font:300 30px var(--sx-font);padding:10px 14px;}
+
+/* ── 15. APPEARANCE STUDIO ── */
+.sx-app{display:flex;height:100%;background:var(--sx-surface);color:var(--sx-text);font:400 13px var(--sx-font);}
+.sx-side{width:220px;flex-shrink:0;padding:14px 10px;overflow-y:auto;border-right:.5px solid var(--sx-hairline);background:var(--sx-card);}
+html[data-shell="nexus"] .sx-side{background:rgba(0,20,50,.35);}
+.sx-side-profile{display:flex;align-items:center;gap:10px;padding:8px 10px 14px;margin-bottom:6px;border-bottom:.5px solid var(--sx-hairline);}
+.sx-side-profile .sx-av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--sx-accent),#bf5af2);display:flex;align-items:center;justify-content:center;font-size:19px;overflow:hidden;}
+.sx-side-profile .sx-av img{width:100%;height:100%;object-fit:cover;}
+.sx-side-profile b{display:block;font-weight:600;font-size:13.5px;}
+.sx-side-profile small{color:var(--sx-text-2);font-size:11.5px;}
+.sx-nav{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;cursor:default;font-weight:500;margin-bottom:1px;}
+.sx-nav:hover{background:var(--sx-card-hover);}
+.sx-nav.on{background:var(--sx-accent);color:var(--sx-on-accent);}
+.sx-nav i{width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:13px;color:#fff;flex-shrink:0;}
+.sx-main{flex:1;overflow-y:auto;padding:26px 30px 40px;}
+.sx-h1{font:700 26px var(--sx-font);letter-spacing:-.015em;margin-bottom:4px;}
+.sx-sub{color:var(--sx-text-2);font-size:13px;margin-bottom:22px;line-height:1.45;}
+.sx-group{background:var(--sx-win-bg);border-radius:var(--sx-radius-lg);box-shadow:0 0 0 .5px var(--sx-hairline);margin-bottom:18px;overflow:hidden;}
+html[data-theme="dark"] .sx-group{background:var(--sx-card);}
+.sx-group-t{font:600 12.5px var(--sx-font);color:var(--sx-text-2);margin:0 4px 8px;}
+.sx-row{display:flex;align-items:center;gap:14px;padding:12px 16px;min-height:50px;}
+.sx-row+.sx-row{border-top:.5px solid var(--sx-hairline);}
+.sx-row-l{flex:1;min-width:0;}
+.sx-row-l b{display:block;font-weight:500;font-size:13.5px;}
+.sx-row-l small{display:block;color:var(--sx-text-2);font-size:12px;margin-top:2px;line-height:1.35;}
+.sx-row-r{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.sx-row-r .sx-range{width:180px;}
+.sx-val{min-width:44px;text-align:right;color:var(--sx-text-2);font-variant-numeric:tabular-nums;font-size:12px;}
+/* style cards */
+.sx-styles{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:26px;}
+.sx-style{cursor:pointer;border-radius:calc(var(--sx-radius-lg) + 2px);padding:6px;transition:transform .2s var(--sx-spring),box-shadow .2s;}
+.sx-style:hover{transform:translateY(-2px);}
+.sx-style.on{box-shadow:0 0 0 2.5px var(--sx-accent);}
+.sx-style-n{padding:10px 6px 4px;font-weight:600;font-size:13.5px;display:flex;align-items:center;gap:6px;}
+.sx-style-t{padding:0 6px 6px;color:var(--sx-text-2);font-size:11.5px;line-height:1.35;}
+.sx-badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:99px;background:var(--sx-accent);color:#fff;}
+/* mini previews */
+.sx-prev{position:relative;aspect-ratio:16/10;border-radius:var(--sx-radius);overflow:hidden;box-shadow:0 0 0 .5px var(--sx-hairline-2),0 6px 18px rgba(0,0,0,.18);}
+.sx-prev-wp{position:absolute;inset:0;}
+.sx-prev-bar{position:absolute;left:0;right:0;top:0;height:8%;display:flex;align-items:center;gap:4%;padding:0 4%;}
+.sx-prev-bar i{display:block;height:34%;border-radius:2px;background:rgba(255,255,255,.75);}
+.sx-prev-win{position:absolute;left:14%;top:18%;width:56%;height:52%;border-radius:var(--pr,6px);overflow:hidden;box-shadow:0 6px 16px rgba(0,0,0,.3);}
+.sx-prev-wbar{height:18%;display:flex;align-items:center;gap:3px;padding:0 6%;}
+.sx-prev-wbar i{width:5px;height:5px;border-radius:50%;display:block;}
+.sx-prev-wbody{height:82%;padding:7%;display:flex;flex-direction:column;gap:6%;}
+.sx-prev-wbody i{display:block;height:9%;border-radius:3px;opacity:.5;}
+.sx-prev-dock{position:absolute;bottom:4%;left:50%;transform:translateX(-50%);height:12%;display:flex;gap:3px;align-items:center;padding:0 5px;border-radius:5px;}
+.sx-prev-dock i{display:block;width:10px;height:10px;border-radius:3px;}
+/* wallpapers grid */
+.sx-wps{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;margin-bottom:22px;}
+.sx-wp{cursor:pointer;}
+.sx-wp-sw{aspect-ratio:16/10;border-radius:12px;box-shadow:0 0 0 .5px var(--sx-hairline-2),0 4px 12px rgba(0,0,0,.15);transition:transform .2s var(--sx-spring);position:relative;overflow:hidden;background-size:cover;background-position:center;}
+.sx-wp:hover .sx-wp-sw{transform:scale(1.03);}
+.sx-wp.on .sx-wp-sw{box-shadow:0 0 0 3px var(--sx-accent);}
+.sx-wp span{display:block;text-align:center;margin-top:7px;font-size:12px;color:var(--sx-text-2);}
+.sx-accents{display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+.sx-accents .sx-dot{width:26px;height:26px;}
+.sx-color-in{width:30px;height:30px;border:none;padding:0;background:none;cursor:pointer;border-radius:50%;}
+.sx-color-in::-webkit-color-swatch-wrapper{padding:0;}
+.sx-color-in::-webkit-color-swatch{border:none;border-radius:50%;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.2);}
+.sx-shape-opts{display:flex;gap:10px;flex-wrap:wrap;}
+.sx-shape{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;font-size:11.5px;color:var(--sx-text-2);padding:8px;border-radius:12px;}
+.sx-shape .sx-tile{width:44px;height:44px;font-size:22px;}
+.sx-shape.on{background:var(--sx-card-2);color:var(--sx-text);box-shadow:0 0 0 2px var(--sx-accent);}
+.sx-mode-opts{display:flex;gap:16px;}
+.sx-mode{cursor:pointer;text-align:center;font-size:12px;color:var(--sx-text-2);}
+.sx-mode-sw{width:96px;height:62px;border-radius:10px;margin-bottom:7px;box-shadow:0 0 0 .5px var(--sx-hairline-2);overflow:hidden;position:relative;}
+.sx-mode.on .sx-mode-sw{box-shadow:0 0 0 3px var(--sx-accent);}
+.sx-mode.on{color:var(--sx-text);font-weight:600;}
+.sx-pins{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;padding:12px 16px;}
+.sx-pin{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:9px;cursor:pointer;font-size:12.5px;}
+.sx-pin:hover{background:var(--sx-card);}
+.sx-pin .sx-tile{width:24px;height:24px;font-size:13px;flex-shrink:0;}
+.sx-pin input{margin-left:auto;accent-color:var(--sx-accent);}
+.sx-note{font-size:12px;color:var(--sx-text-2);background:var(--sx-card);border-radius:10px;padding:10px 12px;margin-bottom:18px;line-height:1.45;}
+.sx-inject{margin-bottom:14px;}
+.sx-inject-row{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 8px;scrollbar-width:thin;}
+.sx-inject-row .sx-style{flex:0 0 150px;padding:4px;}
+.sx-inject-row .sx-style-n{font-size:12px;padding:6px 4px 2px;}
+
+/* Nexus-mode touch-ups for the new components */
+html[data-shell="nexus"] :is(#sx-cc,.sx-spot-box,.sx-menu){box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 0 1px rgba(0,180,255,.3),0 0 30px rgba(0,180,255,.12);}
+
+/* reduced-motion respect */
+@media (prefers-reduced-motion:reduce){html[data-sx-anim="auto"] *{animation-duration:.01ms!important;transition-duration:.01ms!important;}}
+/* small screens */
+@media (max-width:760px){
+  .sx-side{width:64px;padding:10px 6px;}
+  .sx-side .sx-nav span,.sx-side-profile div{display:none;}
+  .sx-main{padding:18px 16px 30px;}
+  .sx-row{flex-wrap:wrap;}
+  .sx-row-r .sx-range{width:130px;}
+  #sx-cc{left:8px;right:8px;width:auto;}
+}
+</style>
+
 </head>
 <body>
 
@@ -1324,7 +2180,7 @@ html[data-theme-id="jjk"] #domain-hud{display:block;}
   <canvas id="boot-canvas"></canvas>
   <div class="boot-overlay">
     <div class="boot-logo">TOB OS</div>
-    <div class="boot-sub">THEMES, GAMES &amp; RHYTHM EDITION v16.0</div>
+    <div class="boot-sub">SHELL STUDIO EDITION v17.0</div>
     <div class="boot-bar-wrap"><div class="boot-bar"></div></div>
     <div class="boot-msg" id="boot-msg">INITIALIZING CORE...</div>
   </div>
@@ -4008,7 +4864,7 @@ document.getElementById('ts-name-input')?.addEventListener('keydown',e=>{ if(e.k
 ══════════════════════════════════════════════════════════════ */
 
 /* ══ 1. STATE ══ */
-const TOB_VERSION='16.0.0';
+const TOB_VERSION='17.0.0';
 const LS={
   get:(k,d=null)=>{try{const v=localStorage.getItem(k);return v!==null?JSON.parse(v):d;}catch(e){return d;}},
   set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}},
@@ -4147,8 +5003,8 @@ function startIconDrag(div,app,e){
     if(!moved)return;
     const cx=me.touches?me.changedTouches[0].clientX:(me.clientX||sx),cy=me.touches?me.changedTouches[0].clientY:(me.clientY||sy);
     const desktop=document.getElementById('desktop'),rect=desktop.getBoundingClientRect();
-    const col=Math.max(0,Math.min(GRID.cols()-1,Math.round((cx-rect.left-20)/80)));
-    const row=Math.max(0,Math.min(GRID.rows()-1,Math.round((cy-rect.top-16)/90)));
+    const col=Math.max(0,Math.min(GRID.cols()-1,Math.round((cx-rect.left-GRID.slotX(0))/(GRID.slotX(1)-GRID.slotX(0)))));
+    const row=Math.max(0,Math.min(GRID.rows()-1,Math.round((cy-rect.top-GRID.slotY(0))/(GRID.slotY(1)-GRID.slotY(0)))));
     const apps=getVisibleApps();
     // Check if dropped ON an existing app icon — create folder
     const occupant=apps.find(a=>a.id!==app.id&&OS.gridSlots[a.id]&&OS.gridSlots[a.id].col===col&&OS.gridSlots[a.id].row===row);
@@ -5091,6 +5947,15 @@ function buildUpdateLogApp(body){
   const root=document.createElement('div');root.className='updatelog-app';
   root.innerHTML=`<div class="set-title">📋 UPDATE LOG</div>
   <div class="changelog-entry changelog-major">
+    <div class="changelog-version">◈ TOB OS v17.0.0 <span style="color:var(--text-muted);font-size:9px">— CURRENT · SHELL STUDIO EDITION</span></div>
+    <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span><strong>Shell Studio</strong> — 10 complete personalities: macOS, iPadOS, HyperOS, HarmonyOS, Windows 11, One UI, visionOS, Ubuntu, Nothing OS and TOB Classic</div>
+    <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span><strong>Appearance app</strong> — accent color, light/dark/auto, icon shape/style/size, Dock size/magnification/position/auto-hide, window controls, corner radius, shadows, fonts, animation speed, effects, wallpapers, export/import</div>
+    <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span>Menu bar, mobile status bars, GNOME top bar and Windows 11 taskbar + Start menu</div>
+    <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span>Magnifying Dock, Launchpad / App Library, redesigned Control Center with Focus mode, Spotlight (Ctrl/⌘ + K)</div>
+    <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span>Window snapping to screen edges, double-click to zoom, 12 new light &amp; dark wallpapers</div>
+    <div class="changelog-item"><span class="changelog-tag tag-change">CHANGE</span>Premium boot, lock and login screens; proper-case window titles; unified system font</div>
+  </div>
+  <div class="changelog-entry changelog-major">
     <div class="changelog-version">◈ TOB OS v7.0.0 <span style="color:var(--text-muted);font-size:9px">— CURRENT · NEXUS EDITION</span></div>
     <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span><strong>TobTube</strong> — PetTube fully replaced. Folder-sync video platform, no pets, clean YouTube-style layout with creator names</div>
     <div class="changelog-item"><span class="changelog-tag tag-new">NEW</span><strong>Task Manager</strong> — CPU usage, memory stats, running processes, End Task buttons. Win11-inspired layout</div>
@@ -5631,7 +6496,7 @@ function init(){
   if(_masterGain)_masterGain.gain.value=OS.volume;
   checkVersion();initBattery();buildDesktopIcons();
   BUILTIN_MODS.forEach(m=>{const saved=LS.get('tob_mod_'+m.id,false);m.enabled=saved;if(m.enabled)applyMod(m);});
-  const msgs=['LOADING CORE MODULES...','INIT DESKTOP ENVIRONMENT...','iOS GRID SYSTEM...','LOADING APPS...','STARTING SERVICES...','TOB OS v16.0 READY.'];
+  const msgs=['LOADING CORE MODULES...','INIT DESKTOP ENVIRONMENT...','iOS GRID SYSTEM...','LOADING APPS...','STARTING SERVICES...','TOB OS v17.0 READY.'];
   let mi=0;const msgEl=document.getElementById('boot-msg');
   const mInt=setInterval(()=>{if(msgEl)msgEl.textContent=msgs[Math.min(mi++,msgs.length-1)];if(mi>=msgs.length)clearInterval(mInt);},400);
   setTimeout(()=>{const boot=document.getElementById('boot');if(boot){boot.classList.add('fade');setTimeout(()=>{boot.remove();/* initPet removed */},700);}},2600);
@@ -11863,6 +12728,1110 @@ function initV11Systems(){
 
 <!-- PROFILE PIC UPLOAD (hidden input) -->
 <input type="file" id="profile-pic-input" accept="image/*" style="display:none" onchange="UserProfile._handlePicUpload(event)">
+
+<script id="sx-engine">
+/* ══════════════════════════════════════════════════════════════════════
+   TOB OS v17 — SHELL ENGINE
+   Personalities · Appearance Studio · Dock / Taskbar · Control Center
+   Launchpad / Start · Spotlight · Window snapping
+   Everything is layered on top of the existing OS through small wrappers,
+   so all apps, mods and themes keep working.
+══════════════════════════════════════════════════════════════════════ */
+(function(){
+'use strict';
+const SX_KEY='tob_shell_v1';
+const root=document.documentElement;
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ─────────────────────────── 1. PERSONALITIES ─────────────────────────── */
+const STYLES={
+  macos:{name:'macOS',tag:'Translucent menu bar, magnifying Dock, traffic lights.',
+    d:{accent:'#0a84ff',bar:'mac',dock:'dock',ctl:'traffic',launcher:'launchpad',wallpaper:'wp-sx-sequoia',ishape:'22.5%',istyle:'vivid',icon:56,dockSize:52,radius:12,sbh:28,
+       pins:['finder','sx:launch','appstore','music','video','browser','calc','appearance','settings']},
+    p:{win:['#1e1e20','#ffffff'],wbar:['#2a2a2d','#ececee'],bar:'rgba(20,20,24,.4)',dock:'rgba(255,255,255,.22)'}},
+  ipados:{name:'iPadOS',tag:'Big squircle icons, floating Dock, Stage-style windows.',
+    d:{accent:'#0a84ff',bar:'mobile',dock:'dock',ctl:'ipad',launcher:'launchpad',launchTitle:'App Library',wallpaper:'wp-sx-ipad',ishape:'23%',istyle:'vivid',icon:68,dockSize:60,radius:22,sbh:30,
+       pins:['finder','music','video','browser','calc','appstore','settings','sx:launch']},
+    p:{win:['#1c1c1e','#ffffff'],wbar:['#1c1c1e','#ffffff'],bar:'transparent',dock:'rgba(255,255,255,.28)'}},
+  hyperos:{name:'HyperOS',tag:'Airy, very round, pastel light and deep calm dark.',
+    d:{accent:'#3482ff',bar:'mobile',dock:'dock',ctl:'pill',launcher:'launchpad',launchTitle:'All apps',wallpaper:'wp-sx-hyper',ishape:'30%',istyle:'vivid',icon:62,dockSize:56,radius:24,sbh:30,
+       pins:['finder','music','video','browser','appstore','settings']},
+    p:{win:['#121418','#f7f8fb'],wbar:['#121418','#f7f8fb'],bar:'transparent',dock:'rgba(255,255,255,.3)'}},
+  harmonyos:{name:'HarmonyOS',tag:'Clean geometry, deep blue calm, card-first layout.',
+    d:{accent:'#0a59f7',bar:'mobile',dock:'dock',ctl:'pill',launcher:'launchpad',launchTitle:'All apps',wallpaper:'wp-sx-harmony',ishape:'28%',istyle:'vivid',icon:60,dockSize:56,radius:20,sbh:30,
+       pins:['finder','music','video','browser','appstore','calc','settings']},
+    p:{win:['#0e121a','#f7f8fa'],wbar:['#0e121a','#f7f8fa'],bar:'transparent',dock:'rgba(255,255,255,.26)'}},
+  windows11:{name:'Windows 11',tag:'Centered taskbar, Start menu, Mica and snap layouts.',
+    d:{accent:'#4cc2ff',bar:'none',dock:'taskbar',ctl:'win',launcher:'start',wallpaper:'wp-sx-bloom',ishape:'22%',istyle:'vivid',icon:46,dockSize:40,radius:8,sbh:0,
+       pins:['sx:start','sx:search','finder','browser','appstore','music','video','settings']},
+    p:{win:['#1c1c1c','#fafafa'],wbar:['#202020','#f3f3f3'],bar:'none',dock:'rgba(28,28,28,.85)'}},
+  oneui:{name:'One UI',tag:'Bold headers, big round cards, content within reach.',
+    d:{accent:'#3e91ff',bar:'mobile',dock:'dock',ctl:'pill',launcher:'launchpad',launchTitle:'Apps',wallpaper:'wp-sx-oneui',ishape:'32%',istyle:'vivid',icon:62,dockSize:56,radius:26,sbh:30,
+       pins:['finder','music','video','browser','appstore','settings']},
+    p:{win:['#000000','#f6f6f6'],wbar:['#000000','#f6f6f6'],bar:'transparent',dock:'rgba(255,255,255,.26)'}},
+  visionos:{name:'visionOS',tag:'Pure frosted glass floating in your space.',
+    d:{accent:'#5ac8fa',bar:'mobile',dock:'dock',ctl:'ipad',launcher:'launchpad',wallpaper:'wp-sx-vision',ishape:'50%',istyle:'vivid',icon:66,dockSize:54,radius:28,sbh:30,
+       pins:['sx:launch','finder','music','video','browser','settings']},
+    p:{win:['rgba(90,90,100,.55)','rgba(255,255,255,.6)'],wbar:['transparent','transparent'],bar:'transparent',dock:'rgba(160,160,170,.35)'}},
+  ubuntu:{name:'Ubuntu',tag:'GNOME top bar, left dash, Activities overview.',
+    d:{accent:'#e95420',bar:'gnome',dock:'side',ctl:'gnome',launcher:'launchpad',launchTitle:'',wallpaper:'wp-sx-ubuntu',ishape:'22%',istyle:'vivid',icon:52,dockSize:44,radius:12,sbh:30,
+       pins:['browser','finder','music','video','appstore','calc','settings']},
+    p:{win:['#1e1e1e','#fafafa'],wbar:['#303030','#ebebeb'],bar:'#000',dock:'rgba(20,20,20,.8)'}},
+  nothing:{name:'Nothing OS',tag:'Monochrome, dot-matrix type, one red accent.',
+    d:{accent:'#d71921',bar:'mobile',dock:'dock',ctl:'pill',launcher:'launchpad',launchTitle:'',wallpaper:'wp-sx-nothing',ishape:'50%',istyle:'mono',icon:58,dockSize:54,radius:18,sbh:30,
+       pins:['finder','music','video','browser','settings']},
+    p:{win:['#000000','#ffffff'],wbar:['#000000','#ffffff'],bar:'transparent',dock:'rgba(30,30,30,.8)'}},
+  nexus:{name:'TOB Classic',tag:'The original neon Nexus shell — status bar, taskbar, glow.',
+    d:{accent:'#00b4ff',bar:'nexus',dock:'none',ctl:'traffic',launcher:'launchpad',wallpaper:'wp-grid',ishape:'14px',istyle:'classic',icon:52,dockSize:52,radius:12,sbh:28,
+       particles:true,scan:true,rings:true,pins:[]},
+    p:{win:['#020b18','#daeeff'],wbar:['#03101f','#c3dcf8'],bar:'rgba(1,6,16,.95)',dock:'rgba(2,8,22,.97)'}},
+};
+const ORDER=['macos','ipados','hyperos','harmonyos','windows11','oneui','visionos','ubuntu','nothing','nexus'];
+/* keys that are remembered per personality */
+const STYLE_KEYS=new Set(['accent','radius','font','ishape','istyle','icon','dockSize','dockPos','ctl','wallpaper','alpha','transp','shadow','tint','particles','scan','rings','pins','mag','magAmt','dockHide','wpDim']);
+const BASE={accent:'#0a84ff',radius:12,font:'default',ishape:'22.5%',istyle:'vivid',icon:56,dockSize:52,dockPos:'bottom',ctl:'traffic',
+  alpha:.62,transp:true,shadow:1,tint:false,particles:false,scan:false,rings:false,pins:[],mag:true,magAmt:1.55,dockHide:false,wpDim:0,
+  mode:'dark',anim:'auto',unify:true,labels:true,icons:true,snap:true,dblZoom:true,clock24:false,dnd:false,wifi:true,bt:true,air:false,bright:100,recent:[]};
+const FONTS=[
+  {id:'default',name:'Style default',stack:''},
+  {id:'system',name:'System (SF / Segoe)',stack:'-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI Variable","Segoe UI",Roboto,sans-serif'},
+  {id:'inter',name:'Inter',stack:'"Inter",-apple-system,"Segoe UI",sans-serif'},
+  {id:'manrope',name:'Manrope',stack:'"Manrope","Inter",sans-serif'},
+  {id:'outfit',name:'Outfit',stack:'"Outfit","Inter",sans-serif'},
+  {id:'poppins',name:'Poppins',stack:'"Poppins","Inter",sans-serif'},
+  {id:'grotesk',name:'Space Grotesk',stack:'"Space Grotesk","Inter",sans-serif'},
+  {id:'ubuntu',name:'Ubuntu',stack:'"Ubuntu","Inter",sans-serif'},
+  {id:'rajdhani',name:'Rajdhani (TOB)',stack:'"Rajdhani","Inter",sans-serif'},
+  {id:'mono',name:'JetBrains Mono',stack:'"JetBrains Mono",ui-monospace,monospace'},
+];
+const ACCENTS=['#0a84ff','#5e5ce6','#bf5af2','#ff375f','#ff453a','#ff9f0a','#ffd60a','#30d158','#00c7be','#64d2ff','#8e8e93','#e95420','#d71921','#00b4ff'];
+const SHAPES=[{v:'22.5%',n:'Squircle'},{v:'30%',n:'Soft'},{v:'14%',n:'Rounded'},{v:'50%',n:'Circle'},{v:'6px',n:'Square'},{v:'50% 50% 50% 14%',n:'Leaf'}];
+const ISTYLES=[{v:'vivid',n:'Vivid'},{v:'flat',n:'Flat'},{v:'glass',n:'Glass'},{v:'mono',n:'Mono'}];
+const CTLS=[{v:'traffic',n:'Traffic lights'},{v:'win',n:'Windows'},{v:'pill',n:'Pill'},{v:'ipad',n:'Minimal'},{v:'gnome',n:'GNOME'}];
+const WALLS=[
+  {c:'wp-sx-sequoia',n:'Sequoia'},{c:'wp-sx-ipad',n:'Prism'},{c:'wp-sx-hyper',n:'Hyper'},{c:'wp-sx-harmony',n:'Harmony'},
+  {c:'wp-sx-bloom',n:'Bloom'},{c:'wp-sx-oneui',n:'Glow'},{c:'wp-sx-vision',n:'Spatial'},{c:'wp-sx-ubuntu',n:'Noble'},
+  {c:'wp-sx-nothing',n:'Dot Matrix'},{c:'wp-sx-aurora',n:'Aurora'},{c:'wp-sx-dune',n:'Dune'},{c:'wp-sx-graphite',n:'Graphite'},
+  {c:'wp-grid',n:'Nexus Grid',legacy:'wp-grid-opt'},{c:'wp-gradient',n:'Nexus Gradient',legacy:'wp-gradient-opt'},
+  {c:'wp-energy',n:'Nexus Energy',legacy:'wp-energy-opt'},{c:'wp-stadium',n:'Stadium',legacy:'wp-stadium-opt'},
+];
+/* hand-tuned icon gradients for built-in apps */
+const ICON_COLORS={calc:['#ffb340','#ff7a00'],music:['#ff5f7e','#fa233b'],video:['#ff5a4f','#c7001e'],taskmgr:['#45d474','#0a8f3c'],
+  mods:['#ffd84d','#ff9500'],pets:['#ffc36b','#ff7b00'],vault:['#9a9aa0','#4a4a4f'],creator:['#cf7dff','#7d2ae8'],modtutorial:['#4fe08a','#00a86b'],
+  updatelog:['#7fdcff','#0a84ff'],appstore:['#4cb4ff','#0a5cff'],finder:['#6fd3ff','#1e6bff'],'boot-studio':['#ff7a9a','#b44ef2'],
+  'widget-lab':['#7d7bff','#3634a3'],settings:['#b4b4ba','#5b5b60'],rhythmforge:['#ff4fa8','#7b2ff7'],browser:['#52d6ee','#0071e3'],
+  battlegrounds:['#ff6a5c','#7a0b0b'],adventure:['#e3b889','#8a5a2b'],appearance:['#ff9f0a','#ff2d55'],'sx:launch':['#8e8e93','#48484a'],
+  'sx:start':['#4cc2ff','#0067c0'],'sx:search':['#6b6b72','#3a3a40']};
+const PALETTE=[['#64d2ff','#0a84ff'],['#ff9f0a','#ff375f'],['#30d158','#00a3a3'],['#bf5af2','#5e5ce6'],['#ff6961','#c9184a'],['#ffd60a','#ff9500'],
+  ['#5ac8fa','#5856d6'],['#34c759','#248a3d'],['#ff2d55','#af52de'],['#8e8e93','#3a3a3c'],['#00c7be','#007aff'],['#ff9500','#c93400']];
+
+/* ─────────────────────────── 2. STATE ─────────────────────────── */
+function load(){let c=null;try{c=JSON.parse(localStorage.getItem(SX_KEY)||'null');}catch(e){}return c;}
+let cfg=load();
+if(!cfg){
+  cfg={v:1,style:'macos',per:{},mode:(typeof OS!=='undefined'&&OS.theme)||'dark'};
+  /* keep the wallpaper the user already picked for the classic shell */
+  try{const lw=LS.get('tob_wallpaper',null);if(lw)cfg.per.nexus={wallpaper:lw};}catch(e){}
+}
+cfg.per=cfg.per||{};
+if(!STYLES[cfg.style])cfg.style='macos';
+function save(){try{localStorage.setItem(SX_KEY,JSON.stringify(cfg));}catch(e){}}
+function st(){return STYLES[cfg.style];}
+function val(k){
+  if(STYLE_KEYS.has(k)){const o=cfg.per[cfg.style]||{};if(o[k]!==undefined)return o[k];}
+  else if(cfg[k]!==undefined)return cfg[k];
+  const d=st().d;if(d[k]!==undefined)return d[k];
+  return BASE[k];
+}
+function isOverridden(k){const o=cfg.per[cfg.style]||{};return o[k]!==undefined;}
+function setv(k,v,opts={}){
+  if(STYLE_KEYS.has(k)){(cfg.per[cfg.style]=cfg.per[cfg.style]||{})[k]=v;}else cfg[k]=v;
+  save();if(opts.apply!==false)apply(opts);
+}
+function clearv(k){const o=cfg.per[cfg.style];if(o){delete o[k];save();apply();}}
+function nexus(){return cfg.style==='nexus';}
+
+/* ─────────────────────────── 3. HELPERS ─────────────────────────── */
+function hexRgb(h){h=String(h||'#0a84ff').replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h,16)||0;return[(n>>16)&255,(n>>8)&255,n&255];}
+function lum(h){const[r,g,b]=hexRgb(h).map(v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4);});return .2126*r+.7152*g+.0722*b;}
+function hash(s){let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))|0;return Math.abs(h);}
+function iconColors(id){return ICON_COLORS[id]||PALETTE[hash(id)%PALETTE.length];}
+function appList(){try{return[...BUILTIN_APPS,...OS.customApps].filter(a=>a&&a.id);}catch(e){return[];}}
+function findApp(id){return appList().find(a=>a.id===id);}
+function appLabel(id,fallback){
+  if(id==='sx:launch')return st().d.launchTitle||'Launchpad';if(id==='sx:start')return'Start';if(id==='sx:search')return'Search';
+  const a=findApp(id);return a?String(a.label||a.id).replace('\n',' '):(fallback||id);
+}
+function titleCase(s){return String(s).toLowerCase().replace(/(^|[\s\-:·/])([a-z])/g,(m,p,c)=>p+c.toUpperCase()).replace(/\bOs\b/g,'OS').replace(/\bTob\b/g,'TOB').replace(/\bAbil\b/g,'Abil');}
+function tile(id,opts={}){
+  const a=findApp(id)||{};const[ia,ib]=iconColors(id);
+  let inner;
+  if(id==='sx:launch')inner='<svg viewBox="0 0 24 24" width="58%" height="58%">'+[0,1,2].map(r=>[0,1,2].map(c=>`<rect x="${3+c*6.5}" y="${3+r*6.5}" width="4.6" height="4.6" rx="1.4" fill="rgba(255,255,255,${.95-.12*(r+c)})"/>`).join('')).join('')+'</svg>';
+  else if(id==='sx:start')inner='<span class="sx-emoji" style="font-size:.9em">⬡</span>';
+  else if(id==='sx:search')inner='<svg viewBox="0 0 24 24" width="52%" height="52%" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>';
+  else if(a.imageData)inner=`<img src="${esc(a.imageData)}" alt="">`;
+  else inner=`<span class="sx-emoji">${esc(opts.icon||a.icon||'📱')}</span>`;
+  return `<div class="sx-tile" style="--ia:${ia};--ib:${ib}">${inner}</div>`;
+}
+const I={
+  wifi:'<svg class="sx-ico" viewBox="0 0 24 24"><path d="M2.5 9.2a14 14 0 0 1 19 0"/><path d="M5.8 12.6a9.3 9.3 0 0 1 12.4 0"/><path d="M9.1 16a4.6 4.6 0 0 1 5.8 0"/><circle cx="12" cy="19.2" r="1.3" fill="currentColor" stroke="none"/></svg>',
+  wifiOff:'<svg class="sx-ico" viewBox="0 0 24 24" style="opacity:.55"><path d="M2.5 9.2a14 14 0 0 1 19 0"/><path d="M5.8 12.6a9.3 9.3 0 0 1 12.4 0"/><path d="M4 4l16 16"/></svg>',
+  bt:'<svg class="sx-ico" viewBox="0 0 24 24"><path d="M7 7l10 10-5 5V2l5 5L7 17"/></svg>',
+  plane:'<svg class="sx-ico" viewBox="0 0 24 24"><path d="M21 15.5v-2l-8-5V3.8a1.3 1.3 0 0 0-2.6 0v4.7l-8 5v2l8-2.5v4.7l-2 1.5V21l3.3-1 3.3 1v-1.8l-2-1.5v-4.7z"/></svg>',
+  moon:'<svg class="sx-ico" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>',
+  sun:'<svg class="sx-ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg>',
+  search:'<svg class="sx-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>',
+  cc:'<svg class="sx-ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="3.5"/><circle cx="16.5" cy="7.5" r="1.8" fill="currentColor"/><rect x="3" y="13" width="18" height="7" rx="3.5"/><circle cx="7.5" cy="16.5" r="1.8" fill="currentColor"/></svg>',
+  vol:'<svg class="sx-ico" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4.2 4.2 0 0 1 0 6"/><path d="M18.3 6.5a8 8 0 0 1 0 11"/></svg>',
+  lock:'<svg class="sx-ico" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg>',
+  power:'<svg class="sx-ico" viewBox="0 0 24 24"><path d="M12 3v8.5"/><path d="M6.4 6.6a8 8 0 1 0 11.2 0"/></svg>',
+  bell:'<svg class="sx-ico" viewBox="0 0 24 24"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.8 1.8H4.2z"/><path d="M10 21h4"/></svg>',
+  palette:'<svg class="sx-ico" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18c1.2 0 1.8-.8 1.8-1.7 0-1.3-1-1.5-1-2.6 0-.9.7-1.5 1.7-1.5H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3z"/><circle cx="7.5" cy="11" r="1.2" fill="currentColor"/><circle cx="10.5" cy="7.3" r="1.2" fill="currentColor"/><circle cx="15" cy="7.5" r="1.2" fill="currentColor"/></svg>',
+};
+
+/* ─────────────────────────── 4. APPLY ─────────────────────────── */
+let _applying=false,_booted=false,_lastCell=null,_mag=null;
+const mq=window.matchMedia?matchMedia('(prefers-color-scheme: dark)'):null;
+function resolvedTheme(){const m=cfg.mode||'dark';return m==='auto'?(mq&&!mq.matches?'light':'dark'):m;}
+function setAttr(k,v){if(v===null||v===undefined||v===false)root.removeAttribute(k);else root.setAttribute(k,String(v));}
+function setVar(k,v){if(v===null||v===undefined)root.style.removeProperty(k);else root.style.setProperty(k,v);}
+
+function apply(opts={}){
+  _applying=true;
+  const s=st(),d=s.d,nx=nexus();
+  /* theme */
+  const t=resolvedTheme();
+  if(root.getAttribute('data-theme')!==t){root.setAttribute('data-theme',t);try{OS.theme=t;LS.set('tob_theme',t);}catch(e){}}
+  /* structure */
+  setAttr('data-shell',cfg.style);
+  setAttr('data-sx-bar',d.bar);
+  setAttr('data-sx-dock',d.dock==='none'?null:d.dock);
+  setAttr('data-sx-dockpos',d.dock==='dock'?val('dockPos'):null);
+  setAttr('data-sx-dockhide',d.dock==='dock'&&val('dockHide')?'1':null);
+  setAttr('data-sx-ctl',nx?null:val('ctl'));
+  setAttr('data-sx-istyle',nx?null:val('istyle'));
+  setAttr('data-sx-labels',cfg.labels===false?'0':null);
+  setAttr('data-sx-icons',cfg.icons===false?'0':null);
+  setAttr('data-sx-unify',(!nx&&cfg.unify!==false)||(nx&&val('font')!=='default')?'1':null);
+  setAttr('data-sx-particles',val('particles')?null:'0');
+  setAttr('data-sx-scan',val('scan')?null:'0');
+  setAttr('data-sx-rings',val('rings')?null:'0');
+  setAttr('data-sx-transp',val('transp')?null:'0');
+  setAttr('data-sx-tint',val('tint')?'1':null);
+  const anim=cfg.anim||'auto';
+  setAttr('data-sx-anim',anim==='off'?'0':anim==='auto'?'auto':null);
+  /* tokens */
+  const acc=val('accent');const[r,g,b]=hexRgb(acc);
+  setVar('--sx-accent',acc);setVar('--sx-accent-rgb',`${r},${g},${b}`);setVar('--sx-on-accent',lum(acc)>.55?'#000':'#fff');
+  if(nx&&isOverridden('accent')){setVar('--neon',acc);}else setVar('--neon',null);
+  if(isOverridden('radius')){setAttr('data-sx-radius','1');setVar('--sx-u-radius',val('radius')+'px');}else{setAttr('data-sx-radius',null);setVar('--sx-u-radius',null);}
+  const f=FONTS.find(x=>x.id===val('font'));
+  if(f&&f.stack){setAttr('data-sx-font','1');setVar('--sx-u-font',f.stack);}else{setAttr('data-sx-font',null);setVar('--sx-u-font',null);}
+  setVar('--sx-ishape',val('ishape'));
+  setVar('--sx-icon',val('icon')+'px');
+  setVar('--sx-dock',(d.dock==='taskbar'?40:val('dockSize'))+'px');
+  setVar('--sx-speed',{fast:.6,normal:1,auto:1,relaxed:1.5,off:1}[anim]||1);
+  setVar('--sx-alpha',val('transp')?val('alpha'):.97);setVar('--sx-blur',val('transp')?null:'0px');
+  setVar('--sx-shadow-k',val('shadow'));
+  /* geometry */
+  if(nx){setVar('--sb-h',null);setVar('--tb-h',null);setVar('--sx-left',null);setVar('--sx-right',null);}
+  else{
+    const ds=val('dockSize'),dockH=Math.round(ds*1.26)+16;let tb=0,l=0,rr=0;
+    if(d.dock==='taskbar')tb=48;
+    else if(d.dock==='side')l=ds+18;
+    else if(d.dock==='dock'&&!val('dockHide')){const p=val('dockPos');if(p==='left')l=dockH;else if(p==='right')rr=dockH;else tb=dockH;}
+    setVar('--sb-h',d.sbh+'px');setVar('--tb-h',tb+'px');setVar('--sx-left',l+'px');setVar('--sx-right',rr+'px');
+  }
+  /* wallpaper */
+  const wp=val('wallpaper');
+  try{if(wp&&wp!==OS.wallpaper){if(wp==='wp-custom'){if(OS.wpCustom)applyWallpaper('wp-custom',OS.wpCustom);}else applyWallpaper(wp);}}catch(e){}
+  const dim=$('#sx-wp-dim');if(dim)dim.style.opacity=val('wpDim');
+  dockEl().classList.toggle('sx-hidden',d.dock==='dock'&&!!val('dockHide'));
+  const br=$('#sx-bright');if(br)br.style.opacity=((100-(cfg.bright||100))/100*.8).toFixed(3);
+  _applying=false;
+  /* surfaces */
+  renderBar();renderDock();decorateWindows();prettify();
+  if($('#sx-cc'))renderCC();
+  const cell=nx?'nx':val('icon');
+  if(_booted&&cell!==_lastCell){reflowGrid();}
+  _lastCell=cell;
+  if(_booted&&!opts.silentStudio)Studio.refresh(opts.keepStudio);
+}
+if(mq&&mq.addEventListener)mq.addEventListener('change',()=>{if(cfg.mode==='auto')apply();});
+
+/* ─────────────────────────── 5. HOOKS INTO THE OS ─────────────────────────── */
+/* register the Appearance app */
+try{if(!BUILTIN_APPS.find(a=>a.id==='appearance'))BUILTIN_APPS.splice(Math.max(0,BUILTIN_APPS.findIndex(a=>a.id==='settings')),0,{id:'appearance',label:'Appearance',icon:'🖌️',color:'#2a1030'});}catch(e){}
+/* theme toggles anywhere in the OS become explicit choices */
+const _applyTheme=window.applyTheme;
+window.applyTheme=function(t){
+  if(_applying)return _applyTheme(t);
+  if(t===root.getAttribute('data-theme')&&cfg.mode==='auto'){return;}
+  _applyTheme(t);cfg.mode=t;save();apply({keepStudio:true});
+};
+/* wallpapers picked in legacy UI are remembered for the current personality */
+const _applyWallpaper=window.applyWallpaper;
+window.applyWallpaper=function(cls,url){
+  _applyWallpaper(cls,url);
+  if(!_applying&&cls&&cls!==val('wallpaper')){(cfg.per[cfg.style]=cfg.per[cfg.style]||{}).wallpaper=cls;save();Studio.refresh(true);}
+};
+/* app launches: Appearance app + recents */
+const _openApp=window.openApp;
+window.openApp=function(id){
+  if(id==='appearance'&&!(typeof _deleteMode!=='undefined'&&_deleteMode)){Studio.open();closeOverlays();return;}
+  if(findApp(id)){cfg.recent=[id,...(cfg.recent||[]).filter(x=>x!==id)].slice(0,8);save();}
+  closeOverlays();
+  return _openApp(id);
+};
+/* do-not-disturb silences toasts */
+const _toast=window.toast;
+window.toast=function(msg,dur){if(cfg.dnd)return;return _toast(msg,dur);};
+function sysToast(msg,dur){_toast(msg,dur);}
+/* Control Center everywhere */
+window.toggleControlCenter=function(){toggleCC();};
+/* taskbar sync → dock sync */
+const _syncTaskbar=window.syncTaskbar;
+window.syncTaskbar=function(){const r=_syncTaskbar.apply(this,arguments);renderDock();updateBarTitle();return r;};
+/* desktop icons: tile colours + adaptive grid */
+const _build=window.buildDesktopIcons;
+window.buildDesktopIcons=function(){const r=_build.apply(this,arguments);decorateIcons();return r;};
+function cellSize(){if(nexus())return{w:80,h:90,px:20,pt:16};const s=val('icon');return{w:s+30,h:s+40,px:24,pt:18};}
+try{
+  GRID.cols=()=>{const c=cellSize();return Math.max(1,Math.floor(((document.getElementById('desktop').offsetWidth)-c.px*2)/c.w));};
+  GRID.rows=()=>{const c=cellSize();return Math.max(1,Math.floor(((document.getElementById('desktop').offsetHeight)-c.pt*2)/c.h));};
+  GRID.slotX=col=>{const c=cellSize();return c.px+col*c.w;};
+  GRID.slotY=row=>{const c=cellSize();return c.pt+row*c.h;};
+}catch(e){}
+function reflowGrid(){
+  try{
+    const apps=getVisibleApps();const slots=OS.gridSlots||{};
+    const ordered=apps.map(a=>({id:a.id,s:slots[a.id]||{col:999,row:999}})).sort((x,y)=>(x.s.row-y.s.row)||(x.s.col-y.s.col));
+    const cols=GRID.cols();const out={};ordered.forEach((o,i)=>out[o.id]={col:i%cols,row:Math.floor(i/cols)});
+    OS.gridSlots=out;LS.set('tob_grid',out);buildDesktopIcons();
+  }catch(e){}
+}
+function decorateIcons(){
+  $$('#icon-grid .desk-icon').forEach(el=>{
+    const id=el.dataset.appId;if(!id)return;const[ia,ib]=iconColors(id);const im=el.querySelector('.icon-img');
+    if(im){im.style.setProperty('--ia',ia);im.style.setProperty('--ib',ib);if(!im.querySelector('.sx-emoji')&&!im.querySelector('img')){const t=im.textContent;im.textContent='';const sp=document.createElement('span');sp.className='sx-emoji';sp.textContent=t;im.appendChild(sp);}}
+  });
+}
+/* windows: tidy titles, snapping, double-click zoom */
+const _create=WM.create;
+WM.create=function(){const w=_create.apply(WM,arguments);try{decorateWindow(w);}catch(e){}return w;};
+function decorateWindow(w){
+  if(!w||!w.el)return;const t=w.el.querySelector('.win-title');if(!t)return;
+  if(!w.el.dataset.sxTitle){w.el.dataset.sxTitle=w.title||'';w.el.dataset.sxIcon=w.icon||'';w.el.dataset.sxId=w.id;}
+  const raw=w.el.dataset.sxTitle,icon=w.el.dataset.sxIcon;
+  if(nexus()){t.textContent=(icon?icon+' ':'')+raw;return;}
+  const a=findApp(w.id);const nice=a?String(a.label).replace('\n',' '):titleCase(raw);
+  t.textContent=(val('ctl')==='win'&&icon?icon+'  ':'')+nice;
+}
+function decorateWindows(){try{WM.windows.forEach(decorateWindow);}catch(e){}}
+function winFromEl(el){let hit=null;try{WM.windows.forEach(w=>{if(w.el===el)hit=w;});}catch(e){}return hit;}
+
+/* legacy ALL-CAPS headings → proper case in modern styles */
+const PRETTY_SEL='.set-title,.set-section-title,.modal-title,.mod-title,.mod-section-title,.vault-title,.widget-panel-title,.dctx-label,.sm-title,.music-header-title,.finder-title,.store-title';
+const _prettied=new Set();
+function prettyNode(el){
+  [...el.childNodes].forEach(n=>{
+    if(n.nodeType!==3)return;const t=n.nodeValue;if(!/[A-Z]{3}/.test(t)||/[a-z]/.test(t))return;
+    if(n._sxOrig===undefined)n._sxOrig=t;n.nodeValue=titleCase(t.replace(/^[\s◈⬡✦◆•]+/,'')).replace(/\bTob\b/g,'TOB');_prettied.add(n);
+  });
+}
+function prettify(scope){
+  if(nexus()){_prettied.forEach(n=>{if(n._sxOrig!==undefined)n.nodeValue=n._sxOrig;});_prettied.clear();return;}
+  const r=scope||document.body;if(!r||!r.querySelectorAll)return;
+  if(r.matches&&r.matches(PRETTY_SEL))prettyNode(r);
+  r.querySelectorAll(PRETTY_SEL).forEach(prettyNode);
+}
+let _prettyQ=[];
+new MutationObserver(ms=>{
+  if(nexus())return;
+  for(const m of ms)for(const n of m.addedNodes)if(n.nodeType===1)_prettyQ.push(n);
+  if(_prettyQ.length&&!_prettyQ._raf){_prettyQ._raf=requestAnimationFrame(()=>{const q=_prettyQ;_prettyQ=[];q.forEach(n=>{if(n.isConnected)prettify(n);});});}
+}).observe(document.body,{childList:true,subtree:true});
+
+/* lock-screen date in a friendlier format */
+function fixLockDate(){
+  const el=$('#lock-date');if(!el||nexus())return;
+  const n=new Date();const s=n.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
+  if(el.textContent!==s)el.textContent=s;
+}
+
+/* ─────────────────────────── 6. TOP BAR ─────────────────────────── */
+function clockStr(opts={}){
+  const n=new Date();const h24=cfg.clock24;
+  const time=n.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit',hour12:!h24});
+  if(opts.time)return time;
+  const day=n.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+  return{time,day};
+}
+function batt(){
+  const t=($('#bat-pct')||{}).textContent||'';const p=parseInt(t,10);const pct=isFinite(p)?p:100;
+  const ch=$('#bat-charge')&&$('#bat-charge').style.display!=='none';
+  return `<span class="sx-bat ${pct<=20?'low':''}"><span class="sx-bat-pct">${pct}%</span><span class="sx-bat-shell"><span class="sx-bat-fill" style="width:${Math.max(6,pct)}%"></span></span>${ch?'⚡':''}</span>`;
+}
+function focusedName(){
+  try{const w=WM.focusedId&&WM.windows.get(WM.focusedId);if(w&&w.el.style.display!=='none'){const a=findApp(w.id);return a?String(a.label).replace('\n',' '):titleCase(w.title);}}catch(e){}
+  return 'Finder';
+}
+function renderBar(){
+  let bar=$('#sx-bar');
+  if(!bar){bar=document.createElement('div');bar.id='sx-bar';document.body.appendChild(bar);
+    bar.addEventListener('mousedown',barDown);bar.addEventListener('mouseover',barHover);}
+  const kind=st().d.bar;const c=clockStr();
+  if(kind==='mac'){
+    bar.innerHTML=`<div class="sx-bar-group">
+      <div class="sx-bi logo" data-menu="logo">⬡</div>
+      <div class="sx-bi appname" data-menu="app" id="sx-appname">${esc(focusedName())}</div>
+      ${['File','Edit','View','Go','Window','Help'].map(m=>`<div class="sx-bi" data-menu="${m.toLowerCase()}">${m}</div>`).join('')}
+    </div><div class="sx-bar-spacer"></div>
+    <div class="sx-bar-group right">
+      <div class="sx-bi" data-act="cc" title="Battery">${batt()}</div>
+      <div class="sx-bi" data-act="cc" title="Wi-Fi">${cfg.wifi===false?I.wifiOff:I.wifi}</div>
+      <div class="sx-bi" data-act="spot" title="Spotlight">${I.search}</div>
+      <div class="sx-bi" data-act="cc" title="Control Center">${I.cc}</div>
+      ${cfg.dnd?`<div class="sx-bi" data-act="cc" title="Do Not Disturb">${I.moon}</div>`:''}
+      <div class="sx-bi clock" data-act="widgets" id="sx-clock">${esc(c.day)}&nbsp;&nbsp;${esc(c.time)}</div>
+    </div>`;
+  }else if(kind==='mobile'){
+    const ipad=cfg.style==='ipados'||cfg.style==='visionos';
+    bar.innerHTML=`<div class="sx-bar-group"><div class="sx-bi clock" data-act="widgets" id="sx-clock">${esc(c.time)}${ipad?'&nbsp;&nbsp;'+esc(c.day):''}</div>${cfg.dnd?`<div class="sx-bi" data-act="cc">${I.moon}</div>`:''}</div>
+      <div class="sx-bar-spacer" data-act="cc"></div>
+      <div class="sx-bar-group right" data-act="cc">
+        ${cfg.air?`<div class="sx-bi" data-act="cc">${I.plane}</div>`:''}
+        <div class="sx-bi" data-act="cc">${cfg.wifi===false?I.wifiOff:I.wifi}</div>
+        <div class="sx-bi" data-act="cc">${batt()}</div>
+      </div>`;
+  }else if(kind==='gnome'){
+    bar.innerHTML=`<div class="sx-bar-group"><div class="sx-bi" data-act="launch"><span class="sx-activities"><i></i><i></i><i></i></span></div></div>
+      <div class="sx-bi center clock" data-act="widgets" id="sx-clock">${esc(c.day)}&nbsp;&nbsp;${esc(c.time)}</div>
+      <div class="sx-bar-spacer"></div>
+      <div class="sx-bar-group right"><div class="sx-bi" data-act="cc">${cfg.wifi===false?I.wifiOff:I.wifi}${I.vol}${batt()}${I.power}</div></div>`;
+  }else bar.innerHTML='';
+}
+function updateBarTitle(){const n=$('#sx-appname');if(n)n.textContent=focusedName();}
+let _lastClock='';
+setInterval(()=>{
+  const c=clockStr();const k=c.time+c.day+($('#bat-pct')||{}).textContent;
+  if(k!==_lastClock){_lastClock=k;const bar=$('#sx-bar');if(bar&&!$('.sx-bi.open',bar))renderBar();renderTrayClock();}
+  if($('#lock-screen.show'))fixLockDate();
+},1000);
+
+let _menuOpen=null;
+function barDown(e){
+  const it=e.target.closest('.sx-bi,[data-act]');if(!it)return;
+  e.stopPropagation();
+  const act=it.dataset.act,m=it.dataset.menu;
+  if(m){if(_menuOpen===m){closeMenus();return;}openBarMenu(it,m);return;}
+  closeMenus();
+  if(act==='cc')toggleCC();else if(act==='spot')Spot.open();else if(act==='widgets'){closeOverlays();toggleWidgetPanel();}else if(act==='launch')toggleLauncher();
+}
+function barHover(e){if(!_menuOpen)return;const it=e.target.closest('.sx-bi[data-menu]');if(it&&it.dataset.menu!==_menuOpen)openBarMenu(it,it.dataset.menu);}
+function focusedWin(){try{return WM.focusedId?WM.windows.get(WM.focusedId):null;}catch(e){return null;}}
+function menuItems(m){
+  const w=focusedWin();const name=focusedName();
+  const ex=c=>()=>{try{document.execCommand(c);}catch(e){}};
+  switch(m){
+    case'logo':return[{t:'About TOB OS',a:()=>About.open()},{sep:1},{t:'System Settings…',a:()=>openApp('settings')},{t:'Appearance…',k:'Ctrl ,',a:()=>Studio.open()},{t:'App Store…',a:()=>openApp('appstore')},{sep:1},
+      {t:'Force Quit All…',a:()=>adminCloseAll()},{sep:1},{t:'Lock Screen',k:'`',a:()=>lockScreen()},{t:'Restart…',a:()=>adminReload()}];
+    case'app':return[{t:'About '+name,a:()=>About.open()},{sep:1},{t:'Settings…',a:()=>openApp('settings')},{sep:1},{t:'Hide '+name,dis:!w,a:()=>w&&WM.minimize(w.id)},{t:'Quit '+name,dis:!w,a:()=>w&&WM.close(w.id)}];
+    case'file':return[{t:'New Finder Window',a:()=>openFinder()},{t:'New App…',a:()=>openApp('creator')},{sep:1},{t:'Open Launchpad',k:'F4',a:()=>toggleLauncher(true)},{t:'Find…',k:'Ctrl K',a:()=>Spot.open()},{sep:1},{t:'Close Window',dis:!w,a:()=>w&&WM.close(w.id)}];
+    case'edit':return[{t:'Undo',a:ex('undo')},{t:'Redo',a:ex('redo')},{sep:1},{t:'Cut',a:ex('cut')},{t:'Copy',a:ex('copy')},{t:'Paste',a:()=>navigator.clipboard&&navigator.clipboard.readText().then(t=>document.execCommand('insertText',false,t)).catch(()=>{})},{t:'Select All',a:ex('selectAll')}];
+    case'view':return[{t:resolvedTheme()==='dark'?'Switch to Light Appearance':'Switch to Dark Appearance',a:()=>applyTheme(resolvedTheme()==='dark'?'light':'dark')},
+      {t:(cfg.icons===false?'Show':'Hide')+' Desktop Icons',a:()=>setv('icons',cfg.icons===false)},
+      {t:'Show Widgets',a:()=>toggleWidgetPanel(true)},{sep:1},
+      {t:document.fullscreenElement?'Exit Full Screen':'Enter Full Screen',a:()=>{document.fullscreenElement?document.exitFullscreen():root.requestFullscreen&&root.requestFullscreen().catch(()=>{});}}];
+    case'go':return[{t:'Finder',a:()=>openFinder()},{t:'Launchpad',a:()=>toggleLauncher(true)},{t:'App Store',a:()=>openApp('appstore')},{t:'Music',a:()=>openApp('music')},{t:'TOB Browser',a:()=>openApp('browser')},{sep:1},{t:'Appearance',a:()=>Studio.open()},{t:'Settings',a:()=>openApp('settings')}];
+    case'window':{
+      const list=[];try{WM.windows.forEach(x=>list.push({t:(findApp(x.id)?appLabel(x.id):titleCase(x.title)),chk:x.id===WM.focusedId,a:()=>{x.el.style.display==='none'?restoreWindow(x):WM.focus(x.id);}}));}catch(e){}
+      return[{t:'Minimize',dis:!w,a:()=>w&&WM.minimize(w.id)},{t:'Zoom',dis:!w,a:()=>w&&WM.toggleMax(w.id)},{t:'Tile Window to Left of Screen',dis:!w,a:()=>w&&snapTo(w,'left')},{t:'Tile Window to Right of Screen',dis:!w,a:()=>w&&snapTo(w,'right')},
+        {sep:1},{t:'Bring All to Front',a:()=>{try{WM.windows.forEach(x=>{if(x.el.style.display==='none')restoreWindow(x);});}catch(e){}}},{t:'Minimize All',a:()=>showDesktop()},...(list.length?[{sep:1},...list]:[])];}
+    case'help':return[{t:'What\'s New in TOB OS 17',a:()=>{try{WhatsNew.show();}catch(e){}}},{t:'Keyboard Shortcuts',a:()=>Studio.open('shortcuts')},{t:'Update Log',a:()=>openApp('updatelog')},{t:'Mod Guide',a:()=>openApp('modtutorial')}];
+  }
+  return[];
+}
+function menuHTML(items){return items.map(i=>i.sep?'<div class="sx-msep"></div>':i.label?`<div class="sx-mlabel">${esc(i.label)}</div>`:`<div class="sx-mi ${i.dis?'disabled':''} ${i.chk!==undefined?(i.chk?'check':'nocheck'):''}">${i.ic?`<span class="sx-mi-ico">${i.ic}</span>`:''}<span>${esc(i.t)}</span>${i.k?`<span class="sx-kbd">${esc(i.k)}</span>`:''}</div>`).join('');}
+function showMenu(items,x,y,opts={}){
+  closeMenus(true);
+  const m=document.createElement('div');m.className='sx-menu';m.innerHTML=menuHTML(items);document.body.appendChild(m);
+  const acts=items.filter(i=>!i.sep&&!i.label);
+  $$('.sx-mi',m).forEach((el,i)=>el.addEventListener('mouseup',ev=>{ev.stopPropagation();closeMenus();try{acts[i].a&&acts[i].a();}catch(e){console.warn(e);}}));
+  m.addEventListener('mousedown',e=>e.stopPropagation());
+  const r=m.getBoundingClientRect();
+  if(opts.up)y=y-r.height;
+  m.style.left=Math.max(6,Math.min(x,innerWidth-r.width-6))+'px';m.style.top=Math.max(6,Math.min(y,innerHeight-r.height-6))+'px';
+  return m;
+}
+function openBarMenu(it,m){
+  $$('#sx-bar .sx-bi.open').forEach(x=>x.classList.remove('open'));
+  const r=it.getBoundingClientRect();showMenu(menuItems(m),r.left,r.bottom+4);it.classList.add('open');_menuOpen=m;
+}
+function closeMenus(keepState){$$('.sx-menu').forEach(m=>m.remove());$$('#sx-bar .sx-bi.open').forEach(x=>x.classList.remove('open'));if(!keepState)_menuOpen=null;}
+
+/* ─────────────────────────── 7. DOCK / TASKBAR ─────────────────────────── */
+function dockEl(){
+  let d=$('#sx-dock');
+  if(!d){
+    d=document.createElement('div');d.id='sx-dock';d.innerHTML='<div class="sx-dock-inner"></div>';document.body.appendChild(d);
+    const rev=document.createElement('div');rev.id='sx-dock-reveal';document.body.appendChild(rev);
+    rev.addEventListener('mouseenter',()=>d.classList.remove('sx-hidden'));
+    d.addEventListener('mouseleave',()=>{clearTimeout(d._t);d._t=setTimeout(()=>{if(root.getAttribute('data-sx-dockhide')==='1')d.classList.add('sx-hidden');},500);resetMag();});
+    d.addEventListener('mouseenter',()=>clearTimeout(d._t));
+    d.addEventListener('mousemove',magnify);
+    d.addEventListener('click',dockClick);
+    d.addEventListener('contextmenu',dockCtx);
+  }
+  return d;
+}
+function windowsList(){const out=[];try{WM.windows.forEach(w=>out.push(w));}catch(e){}return out;}
+function dockItemHTML(id,extra={}){
+  const running=extra.running,focused=extra.focused;
+  const label=extra.label||appLabel(id);
+  return `<div class="sx-ditem ${running?'running':''} ${focused?'focused':''}" data-id="${esc(id)}">${extra.tileHTML||tile(id,{icon:extra.icon})}<span class="sx-ddot"></span><span class="sx-dtip">${esc(label)}</span></div>`;
+}
+function renderDock(){
+  const d=dockEl();const inner=d.firstChild;const kind=st().d.dock;_mag=null;
+  if(kind==='none'||nexus()){inner.innerHTML='';return;}
+  const wins=windowsList();const runIds=new Set(wins.map(w=>w.id));
+  const pins=(val('pins')||[]).filter(id=>id.startsWith('sx:')||findApp(id));
+  const focusedId=(()=>{try{return WM.focusedId;}catch(e){return null;}})();
+  const item=id=>dockItemHTML(id,{running:runIds.has(id),focused:focusedId===id});
+  const extras=wins.filter(w=>!pins.includes(w.id)).map(w=>dockItemHTML(w.id,{running:true,focused:focusedId===w.id,label:findApp(w.id)?appLabel(w.id):titleCase(w.title),icon:w.icon}));
+  if(kind==='taskbar'){
+    inner.innerHTML=`<div class="sx-tb-left"><div class="sx-weather" data-act="widgets"><span style="font-size:20px">⛅</span><span><b>24°C</b><small>Mostly sunny</small></span></div></div>
+      <div class="sx-tb-center">${pins.map(item).join('')}${extras.join('')}</div>
+      <div class="sx-tb-right"><div class="sx-tray" data-act="cc">${cfg.wifi===false?I.wifiOff:I.wifi}${I.vol}${batt()}</div><div class="sx-tray sx-tray-clock" data-act="widgets" id="sx-tray-clock"></div><div class="sx-tray" data-act="desktop" style="width:8px;padding:0;margin-left:4px;border-left:1px solid var(--sx-hairline);border-radius:0" title="Show desktop"></div></div>`;
+    renderTrayClock();
+  }else if(kind==='side'){
+    inner.innerHTML=pins.map(item).join('')+(extras.length?'<div class="sx-dsep"></div>'+extras.join(''):'')+'<div class="sx-dspacer"></div>'+dockItemHTML('sx:launch',{label:'Show Apps'});
+  }else{
+    inner.innerHTML=pins.map(item).join('')+(extras.length?'<div class="sx-dsep"></div>'+extras.join(''):'');
+  }
+}
+function renderTrayClock(){const el=$('#sx-tray-clock');if(!el)return;const n=new Date();el.innerHTML=`${esc(clockStr({time:1}))}<br>${esc(n.toLocaleDateString())}`;}
+function magnify(e){
+  if(st().d.dock!=='dock'||!val('mag'))return;
+  const items=$$('#sx-dock .sx-ditem');if(!items.length)return;
+  const vert=val('dockPos')!=='bottom';
+  if(!_mag){_mag=items.map(el=>{const r=el.getBoundingClientRect();return vert?r.top+r.height/2:r.left+r.width/2;});}
+  const pos=vert?e.clientY:e.clientX;const size=val('dockSize');const sigma=size*1.15;const amt=val('magAmt')-1;
+  items.forEach((el,i)=>{const dd=pos-_mag[i];const s=1+amt*Math.exp(-(dd*dd)/(2*sigma*sigma));el.style.setProperty('--s',s.toFixed(3));});
+}
+function resetMag(){_mag=null;$$('#sx-dock .sx-ditem').forEach(el=>el.style.removeProperty('--s'));}
+function dockClick(e){
+  const act=e.target.closest('[data-act]');
+  if(act&&!e.target.closest('.sx-ditem')){const a=act.dataset.act;if(a==='cc')toggleCC();else if(a==='widgets'){closeOverlays();toggleWidgetPanel();}else if(a==='desktop')showDesktop();return;}
+  const it=e.target.closest('.sx-ditem');if(!it)return;
+  e.stopPropagation();launch(it.dataset.id,it);
+}
+function launch(id,el){
+  if(id==='sx:launch')return toggleLauncher();
+  if(id==='sx:start')return toggleStart();
+  if(id==='sx:search')return Spot.open();
+  let w=null;try{w=WM.windows.get(id);}catch(e){}
+  closeOverlays();
+  if(w){
+    if(w.el.style.display==='none')restoreWindow(w);
+    else if(WM.focusedId===id&&st().d.dock==='taskbar')WM.minimize(id);
+    else WM.focus(id);
+    return;
+  }
+  if(el&&st().d.dock==='dock'){el.classList.remove('bounce');void el.offsetWidth;el.classList.add('bounce');}
+  openApp(id);
+}
+function dockCtx(e){
+  e.preventDefault();e.stopPropagation();
+  const it=e.target.closest('.sx-ditem');const x=e.clientX,y=e.clientY;
+  const up=st().d.dock!=='side'&&val('dockPos')==='bottom';
+  if(!it){
+    showMenu([{label:'Dock'},{t:(val('mag')?'Turn Magnification Off':'Turn Magnification On'),a:()=>setv('mag',!val('mag'))},
+      ...(st().d.dock==='dock'?[{t:(val('dockHide')?'Turn Hiding Off':'Turn Hiding On'),a:()=>setv('dockHide',!val('dockHide'))},
+        {t:'Position on Screen: Left',chk:val('dockPos')==='left',a:()=>setv('dockPos','left')},{t:'Bottom',chk:val('dockPos')==='bottom',a:()=>setv('dockPos','bottom')},{t:'Right',chk:val('dockPos')==='right',a:()=>setv('dockPos','right')}]:[]),
+      {sep:1},{t:'Dock Settings…',a:()=>Studio.open('desktop')}],x,y,{up});return;
+  }
+  const id=it.dataset.id;const pins=[...(val('pins')||[])];const pinned=pins.includes(id);
+  let w=null;try{w=WM.windows.get(id);}catch(e){}
+  const items=[{label:appLabel(id,w&&titleCase(w.title))}];
+  if(!id.startsWith('sx:'))items.push({t:w?'Show':'Open',a:()=>launch(id)});
+  if(w)items.push({t:'Minimize',a:()=>WM.minimize(id)});
+  if(findApp(id)||id.startsWith('sx:'))items.push({t:pinned?'Remove from Dock':'Keep in Dock',a:()=>{setv('pins',pinned?pins.filter(p=>p!==id):[...pins,id]);}});
+  if(w)items.push({sep:1},{t:'Quit',a:()=>WM.close(id)});
+  showMenu(items,x,y,{up});
+}
+function showDesktop(){try{WM.windows.forEach(w=>{if(w.el.style.display!=='none')WM.minimize(w.id);});}catch(e){}}
+
+/* ─────────────────────────── 8. CONTROL CENTER ─────────────────────────── */
+function toggleCC(force){
+  const ex=$('#sx-cc');
+  if(ex&&force!==true){ex.classList.add('closing');setTimeout(()=>ex.remove(),170);return;}
+  if(ex)return;
+  closeOverlays('cc');
+  const cc=document.createElement('div');cc.id='sx-cc';document.body.appendChild(cc);
+  cc.addEventListener('mousedown',e=>e.stopPropagation());
+  cc.addEventListener('click',ccClick);cc.addEventListener('input',ccInput);
+  renderCC();
+}
+function nowPlaying(){
+  try{const song=MUSIC.songs[MUSIC.currentIdx];if(song)return{t:song.name.replace(/\.[a-z0-9]+$/i,''),s:MUSIC.playing?'Music':'Paused',on:MUSIC.playing,mp3:true};}catch(e){}
+  try{if(_ostPlaying)return{t:'TOB OST — '+titleCase(OS.track),s:'Ambient soundtrack',on:true};}catch(e){}
+  return{t:'Not Playing',s:'TOB OS Music',on:false};
+}
+function renderCC(){
+  const cc=$('#sx-cc');if(!cc)return;const np=nowPlaying();const dark=resolvedTheme()==='dark';
+  const vol=Math.round((OS.volume==null?.5:OS.volume)*100),bright=cfg.bright||100;
+  cc.innerHTML=`<div class="sx-cc-grid">
+    <div class="sx-cc-card sx-cc-conn">
+      <div class="sx-cc-round ${cfg.wifi!==false?'on':''}" data-cc="wifi"><i>${I.wifi}</i>Wi-Fi</div>
+      <div class="sx-cc-round ${cfg.bt!==false?'on':''}" data-cc="bt"><i>${I.bt}</i>Bluetooth</div>
+      <div class="sx-cc-round ${cfg.air?'on':''}" data-cc="air"><i>${I.plane}</i>Airplane</div>
+      <div class="sx-cc-round ${cfg.dnd?'on':''}" data-cc="dnd"><i>${I.moon}</i>Focus</div>
+    </div>
+    <div class="sx-cc-card sx-cc-np">
+      <div style="display:flex;gap:10px;align-items:center"><div class="sx-cc-np-art">${np.on?'♪':'🎵'}</div><div style="min-width:0;flex:1"><div class="sx-cc-np-title">${esc(np.t)}</div><div class="sx-cc-np-sub">${esc(np.s)}</div></div></div>
+      <div class="sx-cc-np-ctl"><button data-cc="prev">⏮</button><button data-cc="play">${np.on?'⏸':'▶'}</button><button data-cc="next">⏭</button></div>
+    </div>
+    <div class="sx-cc-card sx-cc-tile ${dark?'on':''}" data-cc="dark"><i>${dark?I.moon:I.sun}</i><div><b>${dark?'Dark':'Light'} Mode</b><small>${cfg.mode==='auto'?'Automatic':'Tap to switch'}</small></div></div>
+    <div class="sx-cc-card sx-cc-tile" data-cc="studio"><i>${I.palette}</i><div><b>Appearance</b><small>${esc(st().name)}</small></div></div>
+    <div class="sx-cc-card sx-cc-slider"><label>Display<span>${bright}%</span></label><input class="sx-cc-bigrange" type="range" min="25" max="100" value="${bright}" data-cc="bright" style="--p:${(bright-25)/75*100}%"></div>
+    <div class="sx-cc-card sx-cc-slider"><label>Sound<span>${vol}%</span></label><input class="sx-cc-bigrange" type="range" min="0" max="100" value="${vol}" data-cc="vol" style="--p:${vol}%"></div>
+    <div class="sx-cc-card sx-cc-sq" data-cc="lock" title="Lock">${I.lock}</div>
+    <div class="sx-cc-card sx-cc-sq" data-cc="spot" title="Search">${I.search}</div>
+    <div class="sx-cc-card sx-cc-sq" data-cc="launch" title="Apps">▦</div>
+    <div class="sx-cc-card sx-cc-sq" data-cc="shot" title="Full screen">⤢</div>
+    <div class="sx-cc-card sx-cc-wide"><div class="sx-cc-title">Style</div><div class="sx-cc-styles">${ORDER.map(k=>`<button class="sx-chip ${k===cfg.style?'on':''}" data-style="${k}">${esc(STYLES[k].name)}</button>`).join('')}</div>
+      <div class="sx-cc-title" style="margin-top:12px">Accent</div><div class="sx-dots">${ACCENTS.slice(0,10).map(a=>`<span class="sx-dot ${a.toLowerCase()===String(val('accent')).toLowerCase()?'on':''}" style="background:${a}" data-accent="${a}"></span>`).join('')}</div></div>
+  </div>
+  <div class="sx-cc-foot"><button data-cc="settings">Settings</button><button data-cc="tm">Activity</button><button data-cc="restart">Restart</button></div>`;
+}
+function ccClick(e){
+  const s=e.target.closest('[data-style]');if(s){switchStyle(s.dataset.style);return;}
+  const a=e.target.closest('[data-accent]');if(a){setv('accent',a.dataset.accent);return;}
+  const b=e.target.closest('[data-cc]');if(!b)return;const k=b.dataset.cc;
+  switch(k){
+    case'wifi':cfg.wifi=cfg.wifi===false;save();sysToast(cfg.wifi?'Wi-Fi on':'Wi-Fi off');break;
+    case'bt':cfg.bt=cfg.bt===false;save();break;
+    case'air':cfg.air=!cfg.air;if(cfg.air)cfg.wifi=false;save();break;
+    case'dnd':cfg.dnd=!cfg.dnd;save();sysToast(cfg.dnd?'🌙 Focus on — notifications silenced':'Focus off');break;
+    case'prev':try{mp3Prev();}catch(e){}break;
+    case'next':try{mp3Next();}catch(e){}break;
+    case'play':try{if(MUSIC.songs[MUSIC.currentIdx])mp3Pause();else toggleMusic();}catch(e){}break;
+    case'dark':applyTheme(resolvedTheme()==='dark'?'light':'dark');break;
+    case'studio':toggleCC();Studio.open();return;
+    case'lock':toggleCC();lockScreen();return;
+    case'spot':toggleCC();Spot.open();return;
+    case'launch':toggleCC();toggleLauncher(true);return;
+    case'shot':document.fullscreenElement?document.exitFullscreen():root.requestFullscreen&&root.requestFullscreen().catch(()=>{});break;
+    case'settings':toggleCC();openApp('settings');return;
+    case'tm':toggleCC();openApp('taskmgr');return;
+    case'restart':adminReload();return;
+    default:return;
+  }
+  renderCC();renderBar();renderDock();
+}
+function ccInput(e){
+  const r=e.target;const k=r.dataset.cc;if(!k)return;const v=+r.value;
+  if(k==='bright'){cfg.bright=v;save();const br=$('#sx-bright');if(br)br.style.opacity=((100-v)/100*.8).toFixed(3);r.style.setProperty('--p',((v-25)/75*100)+'%');}
+  if(k==='vol'){try{setVolume(v/100);}catch(e){}const au=$('#audio-el');if(au)au.volume=v/100;r.style.setProperty('--p',v+'%');}
+  const lab=r.previousElementSibling&&r.previousElementSibling.querySelector('span');if(lab)lab.textContent=v+'%';
+}
+
+/* ─────────────────────────── 9. LAUNCHPAD & START ─────────────────────────── */
+function launcherApps(){return appList().filter(a=>!a.isFolder);}
+function toggleLauncher(force){
+  if(st().d.launcher==='start'&&force!==true)return toggleStart();
+  const ex=$('#sx-launch');
+  if(ex){ex.classList.add('closing');setTimeout(()=>ex.remove(),190);return;}
+  closeOverlays('launch');
+  const lp=document.createElement('div');lp.id='sx-launch';
+  const title=st().d.launchTitle;
+  lp.innerHTML=`${title?`<div class="sx-launch-title">${esc(title)}</div>`:''}<input class="sx-launch-search" placeholder="Search" autocomplete="off"><div class="sx-launch-grid"></div>`;
+  document.body.appendChild(lp);
+  const grid=$('.sx-launch-grid',lp),inp=$('.sx-launch-search',lp);
+  const draw=q=>{const list=launcherApps().filter(a=>!q||String(a.label||a.id).toLowerCase().includes(q));
+    grid.innerHTML=list.length?list.map((a,i)=>`<div class="sx-launch-app" data-id="${esc(a.id)}" style="animation-delay:${Math.min(i*14,300)}ms">${tile(a.id)}<span>${esc(String(a.label||a.id).replace('\n',' '))}</span></div>`).join(''):'<div class="sx-launch-empty">No Results</div>';};
+  draw('');
+  inp.addEventListener('input',()=>draw(inp.value.trim().toLowerCase()));
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){const f=$('.sx-launch-app',grid);if(f){lp.remove();openApp(f.dataset.id);}}});
+  lp.addEventListener('mousedown',e=>e.stopPropagation());
+  lp.addEventListener('click',e=>{const a=e.target.closest('.sx-launch-app');if(a){lp.remove();openApp(a.dataset.id);return;}if(e.target===lp||e.target===grid)toggleLauncher();});
+  setTimeout(()=>inp.focus(),50);
+}
+function toggleStart(){
+  const ex=$('#sx-start');
+  if(ex){ex.classList.add('closing');setTimeout(()=>ex.remove(),170);return;}
+  closeOverlays('start');
+  const p=(()=>{try{return UserProfile.get();}catch(e){return null;}})()||{name:'Guest',avatar:'👤'};
+  const pins=(val('pins')||[]).filter(id=>findApp(id));
+  const all=[...pins,...launcherApps().map(a=>a.id).filter(id=>!pins.includes(id))].slice(0,18);
+  const rec=(cfg.recent||[]).filter(id=>findApp(id)).slice(0,6);
+  const sm=document.createElement('div');sm.id='sx-start';
+  sm.innerHTML=`<div class="sx-start-body">
+    <input class="sx-start-search" placeholder="Search for apps, settings, and documents" autocomplete="off">
+    <div class="sx-start-h"><span>Pinned</span><button class="sx-btn" data-all style="height:24px;font-size:12px">All apps ›</button></div>
+    <div class="sx-start-grid">${all.map(id=>`<div class="sx-start-app" data-id="${esc(id)}">${tile(id)}<span>${esc(appLabel(id))}</span></div>`).join('')}</div>
+    <div class="sx-start-h"><span>Recommended</span></div>
+    <div class="sx-start-rec">${rec.length?rec.map((id,i)=>`<div class="sx-start-recitem" data-id="${esc(id)}">${tile(id)}<div>${esc(appLabel(id))}<small>${i===0?'Recently opened':'Opened earlier'}</small></div></div>`).join(''):'<div style="color:var(--sx-text-2);padding:8px 10px">Apps you open will show up here.</div>'}</div>
+  </div>
+  <div class="sx-start-foot"><div class="sx-start-user" data-user><span class="sx-start-av">${p.profilePic?`<img src="${esc(p.profilePic)}">`:esc(p.avatar||'👤')}</span><span>${esc(p.name||'Guest')}</span></div><div class="sx-start-power" data-power title="Power">${I.power}</div></div>`;
+  document.body.appendChild(sm);
+  sm.addEventListener('mousedown',e=>e.stopPropagation());
+  sm.addEventListener('click',e=>{
+    const a=e.target.closest('[data-id]');if(a){sm.remove();openApp(a.dataset.id);return;}
+    if(e.target.closest('[data-all]')){sm.remove();toggleLauncher(true);return;}
+    if(e.target.closest('[data-user]')){sm.remove();try{UserProfile.showEdit();}catch(err){openApp('settings');}return;}
+    if(e.target.closest('[data-power]')){const r=e.target.closest('[data-power]').getBoundingClientRect();showMenu([{t:'Lock',a:()=>{sm.remove();lockScreen();}},{t:'Restart',a:()=>adminReload()}],r.left,r.top-4,{up:true});}
+  });
+  const s=$('.sx-start-search',sm);
+  s.addEventListener('keydown',e=>{if(e.key.length===1||e.key==='Backspace'){sm.remove();Spot.open(e.key.length===1?e.key:'');e.preventDefault();}});
+  setTimeout(()=>s.focus(),60);
+}
+
+/* ─────────────────────────── 10. SPOTLIGHT ─────────────────────────── */
+const Spot={
+  sel:0,items:[],
+  open(q=''){
+    if($('#sx-spot')){$('#sx-spot input').focus();return;}
+    closeOverlays('spot');
+    const el=document.createElement('div');el.id='sx-spot';
+    el.innerHTML=`<div class="sx-spot-box"><div class="sx-spot-in">${I.search}<input placeholder="${cfg.style==='windows11'?'Type here to search':'Spotlight Search'}" autocomplete="off" spellcheck="false"></div><div class="sx-spot-res"></div></div>`;
+    document.body.appendChild(el);
+    const inp=$('input',el);inp.value=q;
+    el.addEventListener('mousedown',e=>{if(e.target===el)this.close();e.stopPropagation();});
+    inp.addEventListener('input',()=>{this.sel=0;this.render(inp.value);});
+    inp.addEventListener('keydown',e=>{
+      if(e.key==='ArrowDown'){this.sel=Math.min(this.items.length-1,this.sel+1);this.paint();e.preventDefault();}
+      else if(e.key==='ArrowUp'){this.sel=Math.max(0,this.sel-1);this.paint();e.preventDefault();}
+      else if(e.key==='Enter'){this.run(this.sel);}
+      else if(e.key==='Escape'){this.close();}
+    });
+    $('.sx-spot-res',el).addEventListener('mousemove',e=>{const it=e.target.closest('.sx-spot-item');if(it){const i=+it.dataset.i;if(i!==this.sel){this.sel=i;this.paint();}}});
+    $('.sx-spot-res',el).addEventListener('click',e=>{const it=e.target.closest('.sx-spot-item');if(it)this.run(+it.dataset.i);});
+    this.render(q);setTimeout(()=>inp.focus(),30);
+  },
+  close(){const el=$('#sx-spot');if(el)el.remove();},
+  actions(){return[
+    {t:'Toggle Dark Mode',ic:'🌓',k:'dark light theme appearance',run:()=>applyTheme(resolvedTheme()==='dark'?'light':'dark')},
+    {t:'Open Appearance',ic:'🖌️',k:'customize theme personalize style accent',run:()=>Studio.open()},
+    {t:'Control Center',ic:'🎛️',k:'wifi volume brightness',run:()=>toggleCC(true)},
+    {t:'Show All Apps',ic:'▦',k:'launchpad start apps library',run:()=>toggleLauncher(true)},
+    {t:'Lock Screen',ic:'🔒',k:'lock',run:()=>lockScreen()},
+    {t:cfg.dnd?'Turn Focus Off':'Turn Focus On',ic:'🌙',k:'do not disturb dnd focus notifications',run:()=>{cfg.dnd=!cfg.dnd;save();renderBar();sysToast(cfg.dnd?'🌙 Focus on':'Focus off');}},
+    {t:'Show Desktop',ic:'🖥️',k:'minimize all hide windows',run:()=>showDesktop()},
+    {t:'Close All Windows',ic:'✕',k:'quit close',run:()=>adminCloseAll()},
+    {t:'Keyboard Shortcuts',ic:'⌨️',k:'keys hotkeys',run:()=>Studio.open('shortcuts')},
+    {t:'Restart TOB OS',ic:'↻',k:'reboot reload',run:()=>adminReload()},
+    {t:'Accent Color',ic:'🎨',k:'color accent highlight',run:()=>Studio.open('colors')},
+    {t:'Wallpaper',ic:'🏞️',k:'background wallpaper',run:()=>Studio.open('wallpaper')},
+    {t:'Dock & Desktop',ic:'▭',k:'dock taskbar icons magnification',run:()=>Studio.open('desktop')},
+  ];},
+  render(q){
+    q=(q||'').trim();const ql=q.toLowerCase();const res=$('#sx-spot .sx-spot-res');if(!res)return;
+    this.items=[];let html='';
+    if(!q){
+      const rec=(cfg.recent||[]).filter(findApp).slice(0,5);
+      if(rec.length){html+='<div class="sx-spot-sec">Recent</div>';rec.forEach(id=>{html+=this.row({ic:tile(id),t:appLabel(id),s:'Application',run:()=>openApp(id)});});}
+      html+='<div class="sx-spot-sec">Suggestions</div>';this.actions().slice(0,4).forEach(a=>{html+=this.row({ico:a.ic,t:a.t,s:'Action',run:a.run});});
+      res.innerHTML=html;this.paint();return;
+    }
+    if(/^[\d\s+\-*/().%^]+$/.test(q)&&/\d/.test(q)&&/[+\-*/%^]/.test(q)){
+      try{const v=Function('"use strict";return ('+q.replace(/\^/g,'**')+')')();if(isFinite(v)){const out=+v.toFixed(10);html+='<div class="sx-spot-sec">Calculator</div>';html+=this.row({ico:'🧮',t:q+' = '+out,s:'Copy',run:()=>{navigator.clipboard&&navigator.clipboard.writeText(String(out));sysToast('Copied '+out);}});}}catch(e){}
+    }
+    const apps=launcherApps().filter(a=>String(a.label||a.id).toLowerCase().includes(ql)).slice(0,7);
+    if(apps.length){html+='<div class="sx-spot-sec">Applications</div>';apps.forEach(a=>{html+=this.row({ic:tile(a.id),t:String(a.label||a.id).replace('\n',' '),s:'Application',run:()=>openApp(a.id)});});}
+    const styles=ORDER.filter(k=>(STYLES[k].name+' style theme look').toLowerCase().includes(ql)).slice(0,4);
+    if(styles.length){html+='<div class="sx-spot-sec">Styles</div>';styles.forEach(k=>{html+=this.row({ico:'✦',t:'Switch to '+STYLES[k].name,s:k===cfg.style?'Current':'Style',run:()=>switchStyle(k)});});}
+    const acts=this.actions().filter(a=>(a.t+' '+a.k).toLowerCase().includes(ql)).slice(0,6);
+    if(acts.length){html+='<div class="sx-spot-sec">Actions</div>';acts.forEach(a=>{html+=this.row({ico:a.ic,t:a.t,s:'Action',run:a.run});});}
+    html+='<div class="sx-spot-sec">Search</div>'+this.row({ico:'🌐',t:'Search the web for “'+q+'”',s:'TOB Browser',run:()=>{openApp('browser');}});
+    res.innerHTML=html;this.paint();
+  },
+  row(o){const i=this.items.length;this.items.push(o);return `<div class="sx-spot-item" data-i="${i}">${o.ic?o.ic:`<span class="sx-spot-ico">${esc(o.ico||'•')}</span>`}<b>${esc(o.t)}</b><small>${esc(o.s||'')}</small></div>`;},
+  paint(){$$('#sx-spot .sx-spot-item').forEach((el,i)=>el.classList.toggle('sel',i===this.sel));const s=$('#sx-spot .sx-spot-item.sel');if(s)s.scrollIntoView({block:'nearest'});},
+  run(i){const o=this.items[i];if(!o)return;this.close();try{o.run();}catch(e){console.warn(e);}},
+};
+
+/* ─────────────────────────── 11. WINDOW SNAPPING ─────────────────────────── */
+let _drag=null;
+function deskRect(){const d=$('#desktop');return d?d.getBoundingClientRect():{left:0,top:0,width:innerWidth,height:innerHeight};}
+function snapRect(zone){
+  const r=deskRect();
+  if(zone==='max')return{left:r.left,top:r.top,width:r.width,height:r.height};
+  if(zone==='left')return{left:r.left,top:r.top,width:r.width/2,height:r.height};
+  if(zone==='right')return{left:r.left+r.width/2,top:r.top,width:r.width/2,height:r.height};
+  return null;
+}
+function snapTo(w,zone){
+  if(zone==='max'){if(w.state!=='maximized')WM.toggleMax(w.id);return;}
+  const r=snapRect(zone),d=deskRect();if(!r)return;
+  if(!w.prevGeom||w.state==='open')w.prevGeom={left:w.el.style.left,top:w.el.style.top,width:w.el.style.width,height:w.el.style.height};
+  w.state='open';w.el.style.borderRadius='';
+  const g=nexus()?0:6;
+  Object.assign(w.el.style,{left:(r.left-d.left+g)+'px',top:(r.top-d.top+g)+'px',width:(r.width-g*2)+'px',height:(r.height-g*2)+'px'});
+  w.el.classList.add('anim-maximize');setTimeout(()=>w.el.classList.remove('anim-maximize'),220);WM.focus(w.id);
+}
+document.addEventListener('mousedown',e=>{
+  const bar=e.target.closest&&e.target.closest('.win-bar');
+  if(!bar||e.target.closest('.wc')||e.button!==0){_drag=null;return;}
+  const w=winFromEl(bar.closest('.os-window'));_drag=w?{w,zone:null}:null;
+},true);
+document.addEventListener('mousemove',e=>{
+  if(!_drag||cfg.snap===false)return;
+  const top=parseInt(getComputedStyle(root).getPropertyValue('--sb-h'))||0;
+  const z=e.clientX<=4?'left':e.clientX>=innerWidth-5?'right':e.clientY<=top+3?'max':null;
+  if(z!==_drag.zone){_drag.zone=z;let p=$('#sx-snap');if(!p){p=document.createElement('div');p.id='sx-snap';document.body.appendChild(p);}
+    const r=z&&snapRect(z);if(r){Object.assign(p.style,{left:r.left+8+'px',top:r.top+8+'px',width:r.width-16+'px',height:r.height-16+'px'});p.classList.add('show');}else p.classList.remove('show');}
+});
+document.addEventListener('mouseup',()=>{
+  if(_drag&&_drag.zone&&cfg.snap!==false){const w=_drag.w,z=_drag.zone;setTimeout(()=>snapTo(w,z),0);}
+  const p=$('#sx-snap');if(p)p.classList.remove('show');_drag=null;
+});
+document.addEventListener('dblclick',e=>{
+  if(cfg.dblZoom===false)return;const bar=e.target.closest&&e.target.closest('.win-bar');if(!bar||e.target.closest('.wc'))return;
+  const w=winFromEl(bar.closest('.os-window'));if(w)WM.toggleMax(w.id);
+});
+
+/* ─────────────────────────── 12. GLOBAL INPUT ─────────────────────────── */
+function closeOverlays(except){
+  if(except!=='cc'){const c=$('#sx-cc');if(c)c.remove();}
+  if(except!=='launch'){const l=$('#sx-launch');if(l)l.remove();}
+  if(except!=='start'){const s=$('#sx-start');if(s)s.remove();}
+  if(except!=='spot')Spot.close();
+  closeMenus();
+}
+document.addEventListener('mousedown',e=>{
+  if(e.target.closest&&e.target.closest('#sx-bar,#sx-dock,.sx-menu'))return;
+  if($('.sx-menu'))closeMenus();
+  const cc=$('#sx-cc');if(cc&&!cc.contains(e.target))toggleCC();
+  const sm=$('#sx-start');if(sm&&!sm.contains(e.target)){sm.classList.add('closing');setTimeout(()=>sm.remove(),170);}
+});
+document.addEventListener('keydown',e=>{
+  const mod=e.ctrlKey||e.metaKey;
+  if(mod&&(e.key==='k'||e.key==='K'||e.code==='Space')){e.preventDefault();$('#sx-spot')?Spot.close():Spot.open();return;}
+  if(mod&&e.key===','){e.preventDefault();Studio.open();return;}
+  if(e.key==='F4'){e.preventDefault();toggleLauncher();return;}
+  if(e.altKey&&e.shiftKey&&(e.key==='D'||e.key==='d')){e.preventDefault();applyTheme(resolvedTheme()==='dark'?'light':'dark');return;}
+  if(e.key==='Escape'){
+    if($('#sx-spot')||$('#sx-launch')||$('#sx-start')||$('#sx-cc')||$('.sx-menu')){closeOverlays();e.stopPropagation();}
+  }
+},true);
+/* Windows key-ish: tapping Meta alone opens Start/Launcher */
+let _metaOnly=false;
+document.addEventListener('keydown',e=>{_metaOnly=e.key==='Meta';},true);
+document.addEventListener('keyup',e=>{if(e.key==='Meta'&&_metaOnly&&st().d.launcher==='start'&&!nexus())toggleStart();_metaOnly=false;},true);
+
+/* desktop right-click menu: personalize entries + all wallpapers */
+const _renderDctx=window._renderDctx;
+if(typeof _renderDctx==='function'){
+  window._renderDctx=function(menu){
+    _renderDctx.apply(this,arguments);
+    const panel=menu&&menu.querySelector('.dctx-panel');if(!panel)return;
+    const grid=panel.querySelector('.dctx-wp-grid');
+    if(grid){
+      const extra=document.createElement('div');extra.className='dctx-wp-grid';
+      extra.innerHTML=WALLS.filter(w=>!w.legacy).map(w=>`<div class="dctx-wp-btn${OS.wallpaper===w.c?' active':''}" data-sxwp="${w.c}">${esc(w.n)}</div>`).join('');
+      grid.after(extra);
+      extra.addEventListener('click',ev=>{const b=ev.target.closest('[data-sxwp]');if(!b)return;applyWallpaper(b.dataset.sxwp);hideDeskCtx();});
+    }else{
+      const mk=(ic,t,fn)=>{const d=document.createElement('div');d.className='dctx-item';d.innerHTML=`<div class="dctx-item-icon" style="background:rgba(var(--sx-accent-rgb),.14)">${ic}</div><span>${t}</span>`;d.onclick=()=>{hideDeskCtx();fn();};return d;};
+      const first=panel.firstChild;
+      panel.insertBefore(mk('✦','Change Style…',()=>Studio.open('style')),first);
+      panel.insertBefore(mk('🖌️','Personalize…',()=>Studio.open('colors')),first);
+      const sep=document.createElement('div');sep.className='dctx-sep';panel.insertBefore(sep,first);
+      panel.appendChild(Object.assign(document.createElement('div'),{className:'dctx-sep'}));
+      panel.appendChild(mk(cfg.icons===false?'◻':'◼',(cfg.icons===false?'Show':'Hide')+' Desktop Icons',()=>setv('icons',cfg.icons===false)));
+    }
+  };
+}
+
+/* settings app: Appearance section at the very top */
+const _openSettings=window.openSettings;
+window.openSettings=function(){
+  const r=_openSettings.apply(this,arguments);
+  try{const w=WM.windows.get('settings');const sr=w&&w.body.querySelector('.set-root');if(sr){injectSettings(sr);if(!sr._sxObs){sr._sxObs=new MutationObserver(()=>{if(!sr.querySelector('.sx-inject'))injectSettings(sr);});sr._sxObs.observe(sr,{childList:true});}}}catch(e){}
+  return r;
+};
+function injectSettings(sr){
+  if(sr.querySelector('.sx-inject'))return;
+  const sec=document.createElement('div');sec.className='set-section sx-inject';
+  sec.innerHTML=`<div class="set-section-title">✦ Appearance &amp; Style</div>
+    <div class="sx-inject-row">${ORDER.map(k=>`<div class="sx-style ${k===cfg.style?'on':''}" data-style="${k}">${prevHTML(k)}<div class="sx-style-n">${esc(STYLES[k].name)}</div></div>`).join('')}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><button class="sx-btn primary" data-open>Open Appearance</button>
+    <div class="sx-seg">${['light','dark','auto'].map(m=>`<button class="${(cfg.mode||'dark')===m?'on':''}" data-mode="${m}">${m[0].toUpperCase()+m.slice(1)}</button>`).join('')}</div></div>`;
+  sec.addEventListener('click',e=>{
+    const s=e.target.closest('[data-style]');if(s){switchStyle(s.dataset.style);$$('.sx-inject .sx-style').forEach(x=>x.classList.toggle('on',x.dataset.style===cfg.style));return;}
+    const m=e.target.closest('[data-mode]');if(m){cfg.mode=m.dataset.mode;save();apply();$$('.sx-inject [data-mode]').forEach(x=>x.classList.toggle('on',x.dataset.mode===cfg.mode));return;}
+    if(e.target.closest('[data-open]'))Studio.open();
+  });
+  const title=sr.querySelector('.set-title');if(title)title.after(sec);else sr.prepend(sec);
+}
+
+/* ─────────────────────────── 13. STYLE SWITCH ─────────────────────────── */
+function switchStyle(k,quiet){
+  if(!STYLES[k]||k===cfg.style){if(!quiet&&STYLES[k])sysToast(STYLES[k].name+' is already active');return;}
+  closeOverlays();
+  root.classList.add('sx-switching');
+  cfg.style=k;save();apply();
+  try{WM.windows.forEach(w=>{if(w.state==='maximized'){const d=$('#desktop');Object.assign(w.el.style,{width:d.offsetWidth+'px',height:d.offsetHeight+'px'});}});}catch(e){}
+  if(!quiet)sysToast('✦ '+STYLES[k].name+' style');
+  setTimeout(()=>root.classList.remove('sx-switching'),400);
+}
+
+/* mini preview of a personality */
+function prevHTML(k){
+  const s=STYLES[k],d=s.d,p=s.p,li=resolvedTheme()==='light'?1:0;
+  const wp=(cfg.per[k]&&cfg.per[k].wallpaper)||d.wallpaper;const legacy=WALLS.find(w=>w.c===wp&&w.legacy);
+  const acc=(cfg.per[k]&&cfg.per[k].accent)||d.accent;
+  const line=li?'rgba(0,0,0,.18)':'rgba(255,255,255,.22)';
+  const ctl=d.ctl==='traffic'?`<i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i>`
+    :d.ctl==='win'?`<span style="flex:1"></span><i style="border-radius:0;width:6px;height:1px;background:${line}"></i><i style="border-radius:1px;width:5px;height:5px;border:1px solid ${line}"></i><i style="border-radius:0;background:transparent;color:${line};font-size:6px;width:auto;height:auto;line-height:1">✕</i>`
+    :d.ctl==='ipad'?`<span style="flex:1"></span><i style="background:${line}"></i><i style="background:${line}"></i><i style="background:${line}"></i><span style="flex:1"></span>`
+    :`<span style="flex:1"></span><i style="background:${line};width:7px;height:7px"></i><i style="background:${line};width:7px;height:7px"></i>`;
+  const bar=d.bar==='mac'?`<div class="sx-prev-bar" style="background:${p.bar}"><i style="width:4%"></i><i style="width:7%"></i><i style="width:5%"></i><i style="width:5%"></i><span style="flex:1"></span><i style="width:12%"></i></div>`
+    :d.bar==='mobile'?`<div class="sx-prev-bar"><i style="width:7%"></i><span style="flex:1"></span><i style="width:4%"></i><i style="width:6%"></i></div>`
+    :d.bar==='gnome'?`<div class="sx-prev-bar" style="background:#000"><i style="width:6%"></i><span style="flex:1"></span><i style="width:10%"></i><span style="flex:1"></span><i style="width:8%"></i></div>`
+    :d.bar==='nexus'?`<div class="sx-prev-bar" style="background:${p.bar};box-shadow:0 1px 0 rgba(0,180,255,.3)"><i style="width:8%;background:#00b4ff"></i><span style="flex:1"></span><i style="width:6%"></i></div>`:'';
+  const cols=['#ff9f0a','#0a84ff','#30d158','#ff375f','#bf5af2'];
+  const sq=cols.map(c=>`<i style="background:${c};border-radius:${d.ishape==='50%'?'50%':'3px'}"></i>`).join('');
+  const dock=d.dock==='dock'?`<div class="sx-prev-dock" style="background:${p.dock}">${sq}</div>`
+    :d.dock==='taskbar'?`<div class="sx-prev-dock" style="left:0;right:0;transform:none;bottom:0;border-radius:0;height:10%;justify-content:center;background:${p.dock}"><i style="background:${acc}"></i>${sq}</div>`
+    :d.dock==='side'?`<div class="sx-prev-dock" style="left:0;top:8%;bottom:0;transform:none;height:auto;width:9%;flex-direction:column;justify-content:flex-start;padding:5px 0;border-radius:0;background:${p.dock}">${sq}</div>`
+    :`<div class="sx-prev-dock" style="left:0;right:0;transform:none;bottom:0;border-radius:0;height:10%;background:${p.dock};box-shadow:0 -1px 0 rgba(0,180,255,.3)"><i style="background:#00b4ff"></i></div>`;
+  const wstyle=`--pr:${Math.max(3,d.radius/2.2)}px;background:${p.win[li]};${d.dock==='side'?'left:22%;':''}${k==='visionos'?'backdrop-filter:blur(6px);':''}`;
+  return `<div class="sx-prev"><div class="sx-prev-wp sx-wpsw ${legacy?legacy.legacy:wp}"></div>${bar}
+    <div class="sx-prev-win" style="${wstyle}"><div class="sx-prev-wbar" style="background:${p.wbar[li]}">${ctl}</div>
+    <div class="sx-prev-wbody"><i style="width:60%;background:${acc};opacity:.9"></i><i style="width:85%;background:${line}"></i><i style="width:70%;background:${line}"></i><i style="width:40%;background:${line}"></i></div></div>${dock}</div>`;
+}
+
+/* ─────────────────────────── 14. APPEARANCE STUDIO ─────────────────────────── */
+const PAGES=[
+  {id:'style',n:'Style',ic:'✦',c:'#5e5ce6'},{id:'colors',n:'Colors',ic:'◐',c:'#ff375f'},{id:'desktop',n:'Desktop & Dock',ic:'▦',c:'#0a84ff'},
+  {id:'windows',n:'Windows',ic:'▢',c:'#30b0c7'},{id:'text',n:'Text & Clock',ic:'Aa',c:'#ff9f0a'},{id:'motion',n:'Motion & Effects',ic:'✧',c:'#bf5af2'},
+  {id:'wallpaper',n:'Wallpaper',ic:'▨',c:'#34c759'},{id:'shortcuts',n:'Shortcuts',ic:'⌘',c:'#8e8e93'},{id:'backup',n:'Backup & Reset',ic:'⤓',c:'#636366'},
+];
+const Studio={
+  page:'style',
+  open(page){
+    if(page)this.page=page;
+    let w=null;try{w=WM.windows.get('appearance');}catch(e){}
+    if(w){if(w.el.style.display==='none')restoreWindow(w);else WM.focus('appearance');this.render();return;}
+    const W=Math.min(1000,innerWidth-40),H=Math.min(680,innerHeight-140);
+    WM.create('appearance','APPEARANCE','🖌️',Math.max(360,W),Math.max(420,H),body=>{
+      body.style.overflow='hidden';const r=document.createElement('div');r.className='sx-app';r.id='sx-studio';body.appendChild(r);
+      r.addEventListener('click',e=>this.onClick(e));r.addEventListener('input',e=>this.onInput(e));r.addEventListener('change',e=>this.onChange(e));
+      this.render();
+    });
+    try{cfg.recent=['appearance',...(cfg.recent||[]).filter(x=>x!=='appearance')].slice(0,8);save();}catch(e){}
+  },
+  refresh(keep){if(!$('#sx-studio'))return;if(keep)this.renderSide();else this.render();},
+  render(){const r=$('#sx-studio');if(!r)return;const scroll=$('.sx-main',r)?$('.sx-main',r).scrollTop:0;
+    r.innerHTML=`<div class="sx-side"></div><div class="sx-main"></div>`;this.renderSide();const m=$('.sx-main',r);m.innerHTML=this['p_'+this.page]();m.scrollTop=scroll;},
+  renderSide(){const s=$('#sx-studio .sx-side');if(!s)return;
+    const p=(()=>{try{return UserProfile.get();}catch(e){return null;}})()||{name:'Guest',avatar:'👤'};
+    s.innerHTML=`<div class="sx-side-profile"><span class="sx-av">${p.profilePic?`<img src="${esc(p.profilePic)}">`:esc(p.avatar||'👤')}</span><div><b>${esc(p.name||'Guest')}</b><small>${esc(st().name)} · ${resolvedTheme()==='dark'?'Dark':'Light'}</small></div></div>`+
+      PAGES.map(pg=>`<div class="sx-nav ${pg.id===this.page?'on':''}" data-page="${pg.id}"><i style="background:${pg.c}">${pg.ic}</i><span>${pg.n}</span></div>`).join('');},
+  /* building blocks */
+  row(t,s,ctl){return `<div class="sx-row"><div class="sx-row-l"><b>${t}</b>${s?`<small>${s}</small>`:''}</div><div class="sx-row-r">${ctl}</div></div>`;},
+  sw(k,on,scope){return `<input type="checkbox" class="sx-switch" data-k="${k}" ${scope?`data-scope="${scope}"`:''} ${on?'checked':''}>`;},
+  rng(k,v,min,max,step,fmt){const p=(v-min)/(max-min)*100;return `<input type="range" class="sx-range" data-k="${k}" data-fmt="${fmt||''}" min="${min}" max="${max}" step="${step}" value="${v}" style="--p:${p}%"><span class="sx-val" data-v="${k}">${this.fmt(v,fmt)}</span>`;},
+  fmt(v,f){return f==='px'?v+'px':f==='%'?Math.round(v*100)+'%':f==='x'?(+v).toFixed(2)+'×':String(v);},
+  seg(k,opts,cur){return `<div class="sx-seg">${opts.map(o=>`<button class="${String(o.v)===String(cur)?'on':''}" data-seg="${k}" data-v="${esc(o.v)}">${esc(o.n)}</button>`).join('')}</div>`;},
+  reset(k){return isOverridden(k)?`<button class="sx-btn" style="height:26px;padding:0 10px;font-size:12px" data-reset="${k}">Reset</button>`:'';},
+  head(t,s){return `<div class="sx-h1">${t}</div><div class="sx-sub">${s}</div>`;},
+  p_style(){
+    const modes=[{v:'light',n:'Light'},{v:'dark',n:'Dark'},{v:'auto',n:'Auto'}];
+    const sw=m=>m==='light'?'linear-gradient(135deg,#f5f5f7 50%,#e6e6ea 50%)':m==='dark'?'linear-gradient(135deg,#2c2c30 50%,#1c1c1e 50%)':'linear-gradient(135deg,#f5f5f7 50%,#1c1c1e 50%)';
+    return this.head('Style','Pick a whole personality for TOB OS. Each style remembers its own customizations, so you can switch back and forth freely.')+
+    `<div class="sx-group-t">Appearance</div><div class="sx-group"><div class="sx-row"><div class="sx-mode-opts">${modes.map(m=>`<div class="sx-mode ${(cfg.mode||'dark')===m.v?'on':''}" data-mode="${m.v}"><div class="sx-mode-sw" style="background:${sw(m.v)}"></div>${m.n}</div>`).join('')}</div></div></div>
+    <div class="sx-group-t">Personality</div><div class="sx-styles">${ORDER.map(k=>`<div class="sx-style ${k===cfg.style?'on':''}" data-style="${k}">${prevHTML(k)}<div class="sx-style-n">${esc(STYLES[k].name)}${k===cfg.style?'<span class="sx-badge">Active</span>':''}</div><div class="sx-style-t">${esc(STYLES[k].tag)}</div></div>`).join('')}</div>
+    <div class="sx-group">${this.row('Unified system font','Use the style\'s typeface everywhere — including older neon apps — for a clean, consistent look.',this.sw('unify',cfg.unify!==false,'g'))}</div>`;
+  },
+  p_colors(){
+    const acc=String(val('accent')).toLowerCase();
+    return this.head('Colors','Accent color tints buttons, toggles, selections and highlights across the whole OS.')+
+    `<div class="sx-group-t">Accent color</div><div class="sx-group"><div class="sx-row"><div class="sx-accents">
+      <span class="sx-dot ${!isOverridden('accent')?'on':''}" title="Style default" data-accent="default" style="background:conic-gradient(#ff375f,#ff9f0a,#ffd60a,#30d158,#0a84ff,#bf5af2,#ff375f)"></span>
+      ${ACCENTS.map(a=>`<span class="sx-dot ${isOverridden('accent')&&a.toLowerCase()===acc?'on':''}" style="background:${a}" data-accent="${a}"></span>`).join('')}
+      <input type="color" class="sx-color-in" data-k="accent" value="${esc(val('accent'))}" title="Custom color"></div></div></div>
+    <div class="sx-group-t">Materials</div><div class="sx-group">
+      ${this.row('Transparency','Frosted glass behind menus, Dock, Control Center and panels.',this.sw('transp',val('transp')))}
+      ${this.row('Glass opacity','Lower = more see-through.',this.rng('alpha',val('alpha'),.25,.95,.01,'%'))}
+      ${this.row('Tint windows with accent','Adds a whisper of your accent color to window backgrounds.',this.sw('tint',val('tint')))}
+    </div>`;
+  },
+  p_desktop(){
+    const d=st().d;const pins=val('pins')||[];
+    const pinOpts=[...(d.dock==='taskbar'?['sx:start','sx:search']:['sx:launch']),...launcherApps().map(a=>a.id)];
+    return this.head('Desktop & Dock','Icons, labels and the Dock. Everything updates live.')+
+    `<div class="sx-group-t">App icons</div><div class="sx-group">
+      <div class="sx-row"><div class="sx-row-l"><b>Icon shape</b></div><div class="sx-row-r">${this.reset('ishape')}</div></div>
+      <div class="sx-row"><div class="sx-shape-opts">${SHAPES.map(s=>`<div class="sx-shape ${val('ishape')===s.v?'on':''}" data-ishape="${esc(s.v)}"><div class="sx-tile" style="--ia:#6fd3ff;--ib:#1e6bff;border-radius:${s.v}"><span class="sx-emoji">📁</span></div>${s.n}</div>`).join('')}</div></div>
+      ${this.row('Icon style','',this.seg('istyle',ISTYLES,val('istyle')))}
+      ${this.row('Icon size','Re-flows the desktop grid.',this.rng('icon',val('icon'),40,84,2,'px'))}
+      ${this.row('Show desktop icons','',this.sw('icons',cfg.icons!==false,'g'))}
+      ${this.row('Show labels','',this.sw('labels',cfg.labels!==false,'g'))}
+    </div>
+    ${d.dock==='none'?'<div class="sx-note">The TOB Classic style uses the original taskbar. Pick another style to get a Dock.</div>':`
+    <div class="sx-group-t">${d.dock==='taskbar'?'Taskbar':'Dock'}</div><div class="sx-group">
+      ${d.dock!=='taskbar'?this.row('Size','',this.rng('dockSize',val('dockSize'),36,80,1,'px')):''}
+      ${d.dock==='dock'?this.row('Magnification','Icons grow as your pointer glides over them.',this.sw('mag',val('mag'))):''}
+      ${d.dock==='dock'?this.row('Magnification amount','',this.rng('magAmt',val('magAmt'),1.1,2.2,.05,'x')):''}
+      ${d.dock==='dock'?this.row('Position on screen','',this.seg('dockPos',[{v:'left',n:'Left'},{v:'bottom',n:'Bottom'},{v:'right',n:'Right'}],val('dockPos'))):''}
+      ${d.dock==='dock'?this.row('Automatically hide and show','Frees the full screen for windows; move to the edge to reveal.',this.sw('dockHide',val('dockHide'))):''}
+    </div>
+    <div class="sx-group-t">Pinned apps</div><div class="sx-group"><div class="sx-pins">${pinOpts.map(id=>`<label class="sx-pin">${tile(id)}<span>${esc(appLabel(id))}</span><input type="checkbox" data-pin="${esc(id)}" ${pins.includes(id)?'checked':''}></label>`).join('')}</div></div>`}`;
+  },
+  p_windows(){
+    return this.head('Windows','Title bars, corners, shadows and window management.')+
+    `<div class="sx-group-t">Title bar</div><div class="sx-group">
+      ${nexus()?'<div class="sx-row"><div class="sx-row-l"><small>TOB Classic keeps its original neon title bars.</small></div></div>':this.row('Window controls','',this.seg('ctl',CTLS,val('ctl'))+this.reset('ctl'))}
+      ${this.row('Double-click title bar to zoom','',this.sw('dblZoom',cfg.dblZoom!==false,'g'))}
+    </div>
+    <div class="sx-group-t">Shape &amp; depth</div><div class="sx-group">
+      ${this.row('Corner radius','',this.rng('radius',val('radius'),0,34,1,'px')+this.reset('radius'))}
+      ${this.row('Shadow depth','',this.rng('shadow',val('shadow'),0,2,.05,'x'))}
+    </div>
+    <div class="sx-group-t">Arrangement</div><div class="sx-group">
+      ${this.row('Snap to screen edges','Drag a window to the left or right edge to tile it, or to the top to fill the screen.',this.sw('snap',cfg.snap!==false,'g'))}
+      <div class="sx-row"><div class="sx-row-l"><b>Arrange focused window</b></div><div class="sx-row-r"><button class="sx-btn" data-arr="left">◧ Left</button><button class="sx-btn" data-arr="max">▣ Fill</button><button class="sx-btn" data-arr="right">◨ Right</button></div></div>
+    </div>`;
+  },
+  p_text(){
+    return this.head('Text & Clock','Typeface and time formatting.')+
+    `<div class="sx-group-t">Typeface</div><div class="sx-group">
+      ${this.row('System font','Loaded from Google Fonts when online; falls back to your device font.',`<select class="sx-select" data-k="font">${FONTS.map(f=>`<option value="${f.id}" ${val('font')===f.id?'selected':''}>${esc(f.name)}</option>`).join('')}</select>`)}
+      <div class="sx-row"><div class="sx-row-l" style="font-family:var(--sx-font)"><b style="font-size:22px;font-weight:700;letter-spacing:-.01em">The quick brown fox</b><small>jumps over the lazy dog — 0123456789</small></div></div>
+    </div>
+    <div class="sx-group-t">Clock</div><div class="sx-group">${this.row('24-hour time','',this.sw('clock24',!!cfg.clock24,'g'))}</div>`;
+  },
+  p_motion(){
+    return this.head('Motion & Effects','Animation feel and the classic TOB visual effects.')+
+    `<div class="sx-group-t">Animation</div><div class="sx-group">
+      ${this.row('Animation speed','"Auto" follows your device\'s reduce-motion setting.',this.seg('anim',[{v:'auto',n:'Auto'},{v:'fast',n:'Snappy'},{v:'normal',n:'Normal'},{v:'relaxed',n:'Relaxed'},{v:'off',n:'Off'}],cfg.anim||'auto'))}
+    </div>
+    <div class="sx-group-t">Effects</div><div class="sx-group">
+      ${this.row('Floating particles','',this.sw('particles',val('particles')))}
+      ${this.row('Scanlines','',this.sw('scan',val('scan')))}
+      ${this.row('Ambient rings','',this.sw('rings',val('rings')))}
+    </div>`;
+  },
+  p_wallpaper(){
+    const cur=val('wallpaper');
+    return this.head('Wallpaper','Every wallpaper has a light and dark variant that follows your appearance.')+
+    `<div class="sx-wps">${WALLS.map(w=>`<div class="sx-wp ${cur===w.c?'on':''}" data-wp="${w.c}"><div class="sx-wp-sw sx-wpsw ${w.legacy||w.c}"></div><span>${esc(w.n)}</span></div>`).join('')}
+      <div class="sx-wp ${cur==='wp-custom'?'on':''}" data-wp="wp-custom"><div class="sx-wp-sw" style="${OS.wpCustom?`background-image:url('${esc(OS.wpCustom)}')`:'background:var(--sx-card-2);display:flex;align-items:center;justify-content:center;font-size:26px'}">${OS.wpCustom?'':'＋'}</div><span>${OS.wpCustom?'Your photo':'Add photo…'}</span></div></div>
+    <div class="sx-group">
+      ${this.row('Dim wallpaper','Makes icons and windows stand out.',this.rng('wpDim',val('wpDim'),0,.6,.02,'%'))}
+      <div class="sx-row"><div class="sx-row-l"><b>Upload your own</b><small>Any image — stored locally in your browser.</small></div><div class="sx-row-r">${this.reset('wallpaper')}<button class="sx-btn" data-upload>Choose Image…</button></div></div>
+    </div>`;
+  },
+  p_shortcuts(){
+    const k=[['Ctrl/⌘ + K','Spotlight search'],['Ctrl/⌘ + Space','Spotlight search'],['Ctrl/⌘ + ,','Open Appearance'],['F4','Launchpad / All apps'],['⊞ / ⌘ (tap)','Start menu (Windows 11 style)'],['Alt + Shift + D','Toggle dark mode'],['`','Lock screen'],['Esc','Close menus & overlays'],['Double-click title bar','Zoom window'],['Drag to screen edge','Snap window left / right / full'],['Right-click Dock','Dock options']];
+    return this.head('Keyboard Shortcuts','Get around TOB OS faster.')+`<div class="sx-group">${k.map(([a,b])=>this.row(b,'',`<span class="sx-chip" style="cursor:default">${esc(a)}</span>`)).join('')}</div>`;
+  },
+  p_backup(){
+    return this.head('Backup & Reset','Save your look to a file, bring it to another browser, or start fresh.')+
+    `<div class="sx-group">
+      <div class="sx-row"><div class="sx-row-l"><b>Export appearance</b><small>Downloads a small .json file with every style's customizations.</small></div><div class="sx-row-r"><button class="sx-btn" data-export>Export…</button></div></div>
+      <div class="sx-row"><div class="sx-row-l"><b>Import appearance</b><small>Load a file exported from TOB OS.</small></div><div class="sx-row-r"><button class="sx-btn" data-import>Import…</button></div></div>
+    </div><div class="sx-group">
+      <div class="sx-row"><div class="sx-row-l"><b>Reset ${esc(st().name)}</b><small>Restores this style's accent, icons, Dock and wallpaper defaults.</small></div><div class="sx-row-r"><button class="sx-btn danger" data-resetstyle>Reset Style</button></div></div>
+      <div class="sx-row"><div class="sx-row-l"><b>Reset all appearance settings</b><small>Every style goes back to factory defaults.</small></div><div class="sx-row-r"><button class="sx-btn danger" data-resetall>Reset All</button></div></div>
+    </div>`;
+  },
+  /* events */
+  onClick(e){
+    const t=e.target;const q=s=>t.closest(s);let x;
+    if((x=q('[data-page]'))){this.page=x.dataset.page;this.render();$('#sx-studio .sx-main').scrollTop=0;return;}
+    if((x=q('[data-style]'))){switchStyle(x.dataset.style,true);this.render();return;}
+    if((x=q('[data-mode]'))){cfg.mode=x.dataset.mode;save();apply();return;}
+    if((x=q('[data-accent]'))){if(x.dataset.accent==='default')clearv('accent');else setv('accent',x.dataset.accent,{keepStudio:false});return;}
+    if((x=q('[data-ishape]'))){setv('ishape',x.dataset.ishape);return;}
+    if((x=q('[data-seg]'))){const k=x.dataset.seg,v=x.dataset.v;if(k==='anim')setv('anim',v);else setv(k,v);return;}
+    if((x=q('[data-reset]'))){clearv(x.dataset.reset);return;}
+    if((x=q('[data-wp]'))){const c=x.dataset.wp;if(c==='wp-custom'&&!OS.wpCustom){document.getElementById('wp-file-input').click();return;}setv('wallpaper',c);return;}
+    if(q('[data-upload]')){document.getElementById('wp-file-input').click();return;}
+    if((x=q('[data-arr]'))){let w=null;try{WM.windows.forEach(v=>{if(v.id!=='appearance'&&v.el.style.display!=='none'&&(!w||+v.el.style.zIndex>+w.el.style.zIndex))w=v;});}catch(err){}if(w)snapTo(w,x.dataset.arr);else sysToast('Open another window first');return;}
+    if(q('[data-export]')){const blob=new Blob([JSON.stringify({tobAppearance:1,cfg},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='tob-appearance.json';a.click();sysToast('⬇ tob-appearance.json');return;}
+    if(q('[data-import]')){const inp=document.createElement('input');inp.type='file';inp.accept='.json,application/json';inp.onchange=()=>{const f=inp.files[0];if(!f)return;f.text().then(txt=>{try{const j=JSON.parse(txt);const c=j.cfg||j;if(!c||!c.style||!STYLES[c.style])throw 0;cfg=Object.assign({v:1,per:{}},c);save();apply();this.render();sysToast('✓ Appearance imported');}catch(err){sysToast('⚠ Not a TOB appearance file');}});};inp.click();return;}
+    if(q('[data-resetstyle]')){delete cfg.per[cfg.style];save();apply();this.render();sysToast('↺ '+st().name+' reset');return;}
+    if(q('[data-resetall]')){if(!confirm('Reset every appearance setting?'))return;const keep={style:cfg.style,mode:cfg.mode};cfg={v:1,per:{},...keep};save();apply();this.render();sysToast('↺ Appearance reset');return;}
+  },
+  onInput(e){
+    const t=e.target,k=t.dataset.k;if(!k)return;
+    if(t.type==='range'){const v=+t.value;const min=+t.min,max=+t.max;t.style.setProperty('--p',((v-min)/(max-min)*100)+'%');const lab=$(`[data-v="${k}"]`,t.parentNode);if(lab)lab.textContent=this.fmt(v,t.dataset.fmt);
+      if(k==='icon')return; /* grid reflow on change */
+      setv(k,v,{silentStudio:true});}
+    if(t.type==='color'){setv('accent',t.value,{silentStudio:true});}
+  },
+  onChange(e){
+    const t=e.target;
+    if(t.dataset.pin){const id=t.dataset.pin;let pins=[...(val('pins')||[])];pins=t.checked?[...pins.filter(p=>p!==id),id]:pins.filter(p=>p!==id);setv('pins',pins,{silentStudio:true});return;}
+    const k=t.dataset.k;if(!k)return;
+    if(t.type==='checkbox'){setv(k,t.checked);return;}
+    if(t.type==='range'&&k==='icon'){setv('icon',+t.value,{silentStudio:true});return;}
+    if(t.tagName==='SELECT'){setv(k,t.value);return;}
+    if(t.type==='color'){this.render();}
+  },
+};
+
+/* About sheet */
+const About={open(){
+  const acc=val('accent');
+  WM.create('sx-about','ABOUT TOB OS','⬡',340,420,body=>{
+    body.innerHTML=`<div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:var(--sx-surface);color:var(--sx-text);font-family:var(--sx-font);text-align:center;padding:20px">
+      <div style="width:96px;height:96px;border-radius:24px;background:linear-gradient(145deg,${acc},#bf5af2);display:flex;align-items:center;justify-content:center;font-size:54px;color:#fff;box-shadow:0 10px 30px rgba(var(--sx-accent-rgb),.35);margin-bottom:12px">⬡</div>
+      <div style="font-size:26px;font-weight:700;letter-spacing:-.02em">TOB OS</div>
+      <div style="color:var(--sx-text-2);font-size:13px">Version ${esc(typeof TOB_VERSION!=='undefined'?TOB_VERSION:'17')} · Shell Studio Edition</div>
+      <div style="margin-top:18px;font-size:12.5px;line-height:1.8;color:var(--sx-text-2)">Style <b style="color:var(--sx-text)">${esc(st().name)}</b><br>Apps <b style="color:var(--sx-text)">${launcherApps().length}</b> · Windows <b style="color:var(--sx-text)">${(()=>{try{return WM.windows.size;}catch(e){return 0;}})()}</b></div>
+      <button class="sx-btn" style="margin-top:18px" onclick="openApp('updatelog')">What's New…</button></div>`;
+  });
+}};
+
+/* ─────────────────────────── 15. BOOT ─────────────────────────── */
+function mount(){
+  if(!$('#sx-wp-dim')){const d=document.createElement('div');d.id='sx-wp-dim';const bg=$('#bg-layer');if(bg)bg.after(d);else document.body.appendChild(d);}
+  if(!$('#sx-bright')){const b=document.createElement('div');b.id='sx-bright';document.body.appendChild(b);}
+  /* what's new */
+  try{
+    WhatsNew.VERSION='17.0.0';
+    WhatsNew.CHANGES={
+      NEW:[
+        {icon:'✦',text:'Shell Studio — TOB OS can now look and feel like macOS, iPadOS, HyperOS, HarmonyOS, Windows 11, One UI, visionOS, Ubuntu or Nothing OS. Switch any time from Control Center or the new Appearance app.'},
+        {icon:'🖌️',text:'Appearance app — accent color, light/dark/auto, icon shape & style, icon size, Dock size, magnification, position and auto-hide, window controls, corner radius, shadows, fonts, animation speed and more. Each style remembers its own tweaks.'},
+        {icon:'🧭',text:'Real menu bar (macOS), status bars (iPadOS / HyperOS / HarmonyOS / One UI), GNOME top bar and a Windows 11 taskbar with Start menu.'},
+        {icon:'▦',text:'Magnifying Dock with pinned apps, running indicators, bounce-on-launch and a right-click menu. Launchpad / App Library with instant search.'},
+        {icon:'🎛️',text:'All-new Control Center — Wi-Fi, Bluetooth, Airplane, Focus (silences notifications), Now Playing, display brightness, sound, style and accent switchers.'},
+        {icon:'🔎',text:'Spotlight — press Ctrl/⌘ + K to find apps, run actions, switch styles or do quick math.'},
+        {icon:'🪟',text:'Window snapping — drag to the left/right edge to tile, to the top to fill. Double-click a title bar to zoom.'},
+        {icon:'🏞️',text:'12 new light & dark wallpapers plus wallpaper dimming. Premium boot, lock and login screens.'},
+      ],FIXED:[{icon:'✅',text:'Lock-screen date now shows a friendly format; window titles are shown in proper case in modern styles.'}],REMOVED:[]};
+    const b=$('.wn-badge');if(b)b.textContent='◈ VERSION 17.0.0';
+    const s=$('.wn-sub');if(s)s.textContent='TOB OS · SHELL STUDIO EDITION';
+    const p=$('.wn-btn-primary');if(p){p.textContent='Choose a Style';p.setAttribute('onclick',"WhatsNew.dismiss();setTimeout(()=>SxShell.studio('style'),350)");}
+  }catch(e){}
+  /* lock date formatting */
+  const ld=$('#lock-date');if(ld)new MutationObserver(fixLockDate).observe(ld,{childList:true,characterData:true,subtree:true});
+  apply({silentStudio:true});
+}
+mount();
+/* after the OS finishes booting, decorate what it built */
+const bootWait=setInterval(()=>{
+  if(!document.getElementById('boot')){clearInterval(bootWait);_booted=true;_lastCell=nexus()?'nx':val('icon');decorateIcons();renderDock();renderBar();decorateWindows();}
+},300);
+
+/* public API */
+window.SxShell={
+  get config(){return JSON.parse(JSON.stringify(cfg));},
+  styles:ORDER.map(k=>({id:k,name:STYLES[k].name})),
+  setStyle:k=>switchStyle(k),set:(k,v)=>setv(k,v),studio:p=>Studio.open(p),
+  spotlight:()=>Spot.open(),controlCenter:()=>toggleCC(),launcher:()=>toggleLauncher(true),
+};
+})();
+</script>
 
 </body>
 </html>
